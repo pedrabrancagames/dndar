@@ -6,6 +6,7 @@ import { CombatManager } from './game/CombatManager.js';
 import { GameMaster } from './gm/GameMaster.js';
 import { HUD } from './ui/HUD.js';
 import { SceneManager } from './render/SceneManager.js';
+import { ARSceneManager } from './render/ARSceneManager.js';
 
 class Game {
     constructor() {
@@ -13,6 +14,8 @@ class Game {
         this.gameMaster = new GameMaster();
         this.hud = new HUD();
         this.sceneManager = null; // Inicializado quando entrar em combate
+        this.arSceneManager = null; // Inicializado quando entrar em modo AR
+        this.isARMode = false;
 
         this.telaAtual = 'loading';
         this.elementos = {};
@@ -91,7 +94,10 @@ class Game {
             settingSpeechRate: document.getElementById('setting-speech-rate'),
             settingVolume: document.getElementById('setting-volume'),
             speechRateValue: document.getElementById('speech-rate-value'),
-            volumeValue: document.getElementById('volume-value')
+            volumeValue: document.getElementById('volume-value'),
+
+            // AR
+            btnARCombat: document.getElementById('btn-ar-combat')
         };
     }
 
@@ -106,6 +112,9 @@ class Game {
         this.elementos.btnProfile?.addEventListener('click', () => this.mostrarMensagem('Perfil em desenvolvimento...'));
         this.elementos.btnSettings?.addEventListener('click', () => this.abrirConfiguracoes());
         this.elementos.closeSettings?.addEventListener('click', () => this.fecharConfiguracoes());
+
+        // Botão AR
+        this.elementos.btnARCombat?.addEventListener('click', () => this.iniciarCombateAR());
 
         // Configurações
         this.elementos.settingVoice?.addEventListener('change', (e) => {
@@ -413,6 +422,103 @@ class Game {
 
         // Após briefing, iniciar combate
         this.iniciarCombateTeste();
+    }
+
+    /**
+     * Inicia combate em modo AR
+     */
+    async iniciarCombateAR() {
+        console.log('[Game] Iniciando modo AR...');
+
+        // Inicializar AR Scene Manager se ainda não existe
+        if (!this.arSceneManager) {
+            this.arSceneManager = new ARSceneManager('scene-container');
+            const arSupported = await this.arSceneManager.init();
+
+            if (!arSupported) {
+                this.mostrarARNaoSuportado();
+                return;
+            }
+
+            // Callbacks do AR
+            this.arSceneManager.on('inimigoClicado', ({ instanceId }) => {
+                if (this.combatManager.modoSelecaoAlvo) {
+                    const resultado = this.combatManager.selecionarAlvo(instanceId);
+                    if (resultado.sucesso) {
+                        this.hud.esconderModoSelecao();
+                        this.arSceneManager.limparDestaques();
+                    }
+                }
+            });
+
+            this.arSceneManager.on('enemiesPlaced', () => {
+                this.hud.adicionarLog('Inimigos posicionados em AR!', 'buff');
+            });
+
+            this.arSceneManager.on('arError', ({ message }) => {
+                console.error('[Game] Erro AR:', message);
+                this.mostrarMensagem(`Erro AR: ${message}`);
+            });
+
+            this.arSceneManager.on('arEnded', () => {
+                console.log('[Game] Sessão AR encerrada');
+                this.isARMode = false;
+            });
+        }
+
+        // Ir para tela de combate
+        this.irParaTela('combat');
+
+        // Tentar iniciar AR
+        const arStarted = await this.arSceneManager.startAR();
+
+        if (!arStarted) {
+            // Fallback para modo normal
+            console.warn('[Game] AR não iniciou, usando modo normal');
+            this.iniciarCombateTeste();
+            return;
+        }
+
+        this.isARMode = true;
+        this.sceneManager = this.arSceneManager; // Usar AR como scene manager
+
+        // Configuração de combate AR
+        const configInimigos = [
+            { id: 'goblin' },
+            { id: 'rato_gigante' }
+        ];
+
+        // Iniciar combate (os inimigos serão posicionados quando o usuário tocar no reticle)
+        this.combatManager.iniciarCombate(configInimigos);
+
+        // Mostrar instruções AR
+        this.hud.adicionarLog('Aponte para uma superfície plana', 'buff');
+        this.hud.adicionarLog('Toque para posicionar inimigos', 'buff');
+    }
+
+    /**
+     * Mostra mensagem de AR não suportado
+     */
+    mostrarARNaoSuportado() {
+        const overlay = document.createElement('div');
+        overlay.className = 'ar-not-supported';
+        overlay.innerHTML = `
+            <h2>📱 AR Não Disponível</h2>
+            <p>Seu dispositivo ou navegador não suporta WebXR AR.</p>
+            <p style="font-size: 0.8rem; margin-bottom: 16px;">
+                Requisitos:<br>
+                • Android com Chrome 79+<br>
+                • ARCore instalado<br>
+                • Acesso via HTTPS
+            </p>
+            <button id="ar-fallback-btn">Jogar Modo Normal</button>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('ar-fallback-btn').addEventListener('click', () => {
+            overlay.remove();
+            this.iniciarCombateTeste();
+        });
     }
 
     /**
