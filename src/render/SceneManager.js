@@ -53,7 +53,8 @@ export class SceneManager {
         // Criar câmera
         const aspect = this.container.clientWidth / this.container.clientHeight;
         this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-        this.camera.position.set(0, 1.6, 0); // Altura do olho
+        this.camera.position.set(0, 2, 4); // Posição elevada atrás
+        this.camera.lookAt(0, 0.5, -3); // Olhar para os inimigos
 
         // Criar renderer
         this.renderer = new THREE.WebGLRenderer({

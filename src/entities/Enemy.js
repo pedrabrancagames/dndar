@@ -302,7 +302,10 @@ export class Enemy {
             derrotado: this.derrotado,
             debuffs: this.debuffs.map(d => d.tipo),
             selecionado: this.selecionado,
-            marcado: this.marcado
+            marcado: this.marcado,
+            posicao: this.posicao,
+            escala: this.escala,
+            modelo: this.modelo
         };
     }
 }
