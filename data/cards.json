@@ -1,0 +1,409 @@
+{
+    "cards": [
+        {
+            "id": "heavy_strike",
+            "nome": "Golpe Pesado",
+            "classe": "Guerreiro",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "⚔️",
+            "descricao": "Desfere um golpe devastador em um inimigo.",
+            "efeitos": {
+                "dano": {
+                    "base": 8,
+                    "dados": "2d8"
+                }
+            }
+        },
+        {
+            "id": "shield_wall",
+            "nome": "Defesa Total",
+            "classe": "Guerreiro",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "self",
+            "icon": "🛡️",
+            "descricao": "Assume postura defensiva, reduzindo dano recebido.",
+            "efeitos": {
+                "buff": {
+                    "tipo": "defesa",
+                    "valor": 3,
+                    "duracao": 2
+                }
+            }
+        },
+        {
+            "id": "taunt",
+            "nome": "Provocar",
+            "classe": "Guerreiro",
+            "custoPA": 1,
+            "tipo": "controle",
+            "alvo": "inimigo",
+            "icon": "😤",
+            "descricao": "Força o inimigo a atacar o Guerreiro.",
+            "efeitos": {
+                "status": {
+                    "tipo": "provocado",
+                    "duracao": 2
+                }
+            }
+        },
+        {
+            "id": "cleave",
+            "nome": "Golpe Circular",
+            "classe": "Guerreiro",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "todos_inimigos",
+            "icon": "🌀",
+            "descricao": "Ataca todos os inimigos com um golpe em arco.",
+            "efeitos": {
+                "dano": {
+                    "base": 4,
+                    "dados": "1d6"
+                }
+            }
+        },
+        {
+            "id": "rally_cry",
+            "nome": "Grito de Guerra",
+            "classe": "Guerreiro",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "todos_herois",
+            "icon": "📢",
+            "descricao": "Inspira todos os aliados, aumentando o ataque.",
+            "efeitos": {
+                "buff": {
+                    "tipo": "ataque",
+                    "valor": 2,
+                    "duracao": 2
+                }
+            }
+        },
+        {
+            "id": "execute",
+            "nome": "Execução",
+            "classe": "Guerreiro",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "💀",
+            "descricao": "Dano massivo contra inimigos com pouca vida.",
+            "efeitos": {
+                "dano": {
+                    "base": 6,
+                    "dados": "2d6"
+                },
+                "condicional": {
+                    "se": "alvo_pv_baixo",
+                    "bonus": 10
+                }
+            }
+        },
+        {
+            "id": "fireball",
+            "nome": "Bola de Fogo",
+            "classe": "Mago",
+            "custoPA": 3,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "🔥",
+            "descricao": "Lança uma bola de fogo explosiva.",
+            "efeitos": {
+                "dano": {
+                    "base": 12,
+                    "dados": "3d6"
+                },
+                "status": {
+                    "tipo": "queimando",
+                    "dano": 2,
+                    "duracao": 2
+                }
+            }
+        },
+        {
+            "id": "arcane_bolt",
+            "nome": "Raio Arcano",
+            "classe": "Mago",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "⚡",
+            "descricao": "Dispara um raio de energia arcana.",
+            "efeitos": {
+                "dano": {
+                    "base": 7,
+                    "dados": "2d6"
+                }
+            }
+        },
+        {
+            "id": "freeze",
+            "nome": "Congelar",
+            "classe": "Mago",
+            "custoPA": 1,
+            "tipo": "controle",
+            "alvo": "inimigo",
+            "icon": "❄️",
+            "descricao": "Congela o inimigo, impedindo sua próxima ação.",
+            "efeitos": {
+                "status": {
+                    "tipo": "congelado",
+                    "duracao": 1
+                }
+            }
+        },
+        {
+            "id": "mana_shield",
+            "nome": "Escudo Arcano",
+            "classe": "Mago",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "self",
+            "icon": "🔷",
+            "descricao": "Cria uma barreira mágica protetora.",
+            "efeitos": {
+                "escudo": {
+                    "valor": 8
+                }
+            }
+        },
+        {
+            "id": "chain_lightning",
+            "nome": "Corrente de Raios",
+            "classe": "Mago",
+            "custoPA": 3,
+            "tipo": "ataque",
+            "alvo": "todos_inimigos",
+            "icon": "⛈️",
+            "descricao": "Raios saltam entre todos os inimigos.",
+            "efeitos": {
+                "dano": {
+                    "base": 5,
+                    "dados": "1d8"
+                }
+            }
+        },
+        {
+            "id": "meteor",
+            "nome": "Meteoro",
+            "classe": "Mago",
+            "custoPA": 3,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "☄️",
+            "descricao": "Invoca um meteoro devastador.",
+            "efeitos": {
+                "dano": {
+                    "base": 18,
+                    "dados": "4d6"
+                }
+            }
+        },
+        {
+            "id": "backstab",
+            "nome": "Ataque Furtivo",
+            "classe": "Ladino",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "🗡️",
+            "descricao": "Ataque traiçoeiro com chance de crítico.",
+            "efeitos": {
+                "dano": {
+                    "base": 6,
+                    "dados": "2d6"
+                },
+                "critico": {
+                    "chance": 50,
+                    "multiplicador": 2
+                }
+            }
+        },
+        {
+            "id": "poison_blade",
+            "nome": "Lâmina Envenenada",
+            "classe": "Ladino",
+            "custoPA": 1,
+            "tipo": "debuff",
+            "alvo": "inimigo",
+            "icon": "🧪",
+            "descricao": "Envenena o alvo, causando dano contínuo.",
+            "efeitos": {
+                "dano": {
+                    "base": 2,
+                    "dados": "1d4"
+                },
+                "status": {
+                    "tipo": "envenenado",
+                    "dano": 3,
+                    "duracao": 3
+                }
+            }
+        },
+        {
+            "id": "disarm_trap",
+            "nome": "Desarmar Armadilha",
+            "classe": "Ladino",
+            "custoPA": 1,
+            "tipo": "interacao",
+            "alvo": "objeto",
+            "icon": "🔧",
+            "descricao": "Desarma armadilhas e mecanismos.",
+            "efeitos": {
+                "resultado": "armadilha_desarmada"
+            }
+        },
+        {
+            "id": "evasion",
+            "nome": "Evasão",
+            "classe": "Ladino",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "self",
+            "icon": "💨",
+            "descricao": "Evita o próximo ataque recebido.",
+            "efeitos": {
+                "buff": {
+                    "tipo": "evasao",
+                    "duracao": 1
+                }
+            }
+        },
+        {
+            "id": "mark_target",
+            "nome": "Marcar Alvo",
+            "classe": "Ladino",
+            "custoPA": 1,
+            "tipo": "debuff",
+            "alvo": "inimigo",
+            "icon": "🎯",
+            "descricao": "Marca o alvo, aumentando o dano que recebe.",
+            "efeitos": {
+                "status": {
+                    "tipo": "marcado",
+                    "bonusDano": 4,
+                    "duracao": 2
+                }
+            }
+        },
+        {
+            "id": "assassinate",
+            "nome": "Assassinar",
+            "classe": "Ladino",
+            "custoPA": 3,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "☠️",
+            "descricao": "Golpe letal contra alvos marcados.",
+            "efeitos": {
+                "dano": {
+                    "base": 10,
+                    "dados": "3d6"
+                },
+                "condicional": {
+                    "se": "alvo_marcado",
+                    "bonus": 12
+                }
+            }
+        },
+        {
+            "id": "heal",
+            "nome": "Cura",
+            "classe": "Clérigo",
+            "custoPA": 2,
+            "tipo": "cura",
+            "alvo": "heroi",
+            "icon": "💚",
+            "descricao": "Restaura pontos de vida de um aliado.",
+            "efeitos": {
+                "cura": {
+                    "base": 8,
+                    "dados": "2d6"
+                }
+            }
+        },
+        {
+            "id": "bless",
+            "nome": "Bênção",
+            "classe": "Clérigo",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "heroi",
+            "icon": "✨",
+            "descricao": "Abençoa um aliado, aumentando seu ataque.",
+            "efeitos": {
+                "buff": {
+                    "tipo": "ataque",
+                    "valor": 2,
+                    "duracao": 3
+                }
+            }
+        },
+        {
+            "id": "turn_undead",
+            "nome": "Afastar Mortos-Vivos",
+            "classe": "Clérigo",
+            "custoPA": 2,
+            "tipo": "controle",
+            "alvo": "inimigo",
+            "icon": "☀️",
+            "descricao": "Causa medo em mortos-vivos.",
+            "efeitos": {
+                "status": {
+                    "tipo": "amedrontado",
+                    "duracao": 2
+                },
+                "condicional": {
+                    "se": "alvo_morto_vivo",
+                    "bonus_dano": 8
+                }
+            }
+        },
+        {
+            "id": "divine_shield",
+            "nome": "Escudo Divino",
+            "classe": "Clérigo",
+            "custoPA": 1,
+            "tipo": "buff",
+            "alvo": "heroi",
+            "icon": "🛡️",
+            "descricao": "Protege um aliado com luz divina.",
+            "efeitos": {
+                "escudo": {
+                    "valor": 6
+                }
+            }
+        },
+        {
+            "id": "purify",
+            "nome": "Purificar",
+            "classe": "Clérigo",
+            "custoPA": 1,
+            "tipo": "cura",
+            "alvo": "heroi",
+            "icon": "🌟",
+            "descricao": "Remove todos os efeitos negativos.",
+            "efeitos": {
+                "remover_debuffs": true
+            }
+        },
+        {
+            "id": "resurrection",
+            "nome": "Ressurreição",
+            "classe": "Clérigo",
+            "custoPA": 2,
+            "tipo": "cura",
+            "alvo": "heroi_incapacitado",
+            "icon": "👼",
+            "descricao": "Revive um aliado incapacitado.",
+            "efeitos": {
+                "reviver": {
+                    "pv_percent": 30
+                }
+            }
+        }
+    ]
+}

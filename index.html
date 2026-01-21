@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="Crônicas do Bairro Esquecido - RPG Tático com Realidade Aumentada">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Crônicas do Bairro Esquecido</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Import Map for Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="screen active">
+    <div class="loading-content">
+      <h1 class="game-title">Crônicas do Bairro Esquecido</h1>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-text" id="loading-text">Carregando...</p>
+    </div>
+  </div>
+
+  <!-- Home Screen -->
+  <div id="home-screen" class="screen">
+    <div class="home-container">
+      <header class="home-header">
+        <h1 class="game-title">Crônicas do Bairro Esquecido</h1>
+        <p class="game-subtitle">RPG Tático em Realidade Aumentada</p>
+      </header>
+
+      <nav class="home-menu">
+        <button class="menu-btn primary" id="btn-combat">
+          <span class="btn-icon">⚔️</span>
+          <span class="btn-text">Combate & Exploração</span>
+        </button>
+        <button class="menu-btn" id="btn-game-master">
+          <span class="btn-icon">📜</span>
+          <span class="btn-text">Game Master</span>
+        </button>
+        <button class="menu-btn" id="btn-map">
+          <span class="btn-icon">🗺️</span>
+          <span class="btn-text">Mapa</span>
+        </button>
+        <button class="menu-btn" id="btn-profile">
+          <span class="btn-icon">👤</span>
+          <span class="btn-text">Perfil</span>
+        </button>
+        <button class="menu-btn" id="btn-settings">
+          <span class="btn-icon">⚙️</span>
+          <span class="btn-text">Configurações</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Combat Screen -->
+  <div id="combat-screen" class="screen">
+    <!-- 3D/AR Scene Container -->
+    <div id="scene-container"></div>
+
+    <!-- Combat HUD -->
+    <div id="combat-hud">
+      <!-- Party Panel (Left Side) -->
+      <aside id="party-panel">
+        <div class="hero-slot" data-hero="0">
+          <div class="hero-portrait">
+            <div class="hero-icon">⚔️</div>
+          </div>
+          <div class="hero-info">
+            <span class="hero-name">Guerreiro</span>
+            <div class="stat-bar hp-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">20/20</span>
+            </div>
+            <div class="stat-bar pa-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">2 PA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-slot" data-hero="1">
+          <div class="hero-portrait">
+            <div class="hero-icon">🔮</div>
+          </div>
+          <div class="hero-info">
+            <span class="hero-name">Mago</span>
+            <div class="stat-bar hp-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">12/12</span>
+            </div>
+            <div class="stat-bar pa-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">3 PA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-slot" data-hero="2">
+          <div class="hero-portrait">
+            <div class="hero-icon">🗡️</div>
+          </div>
+          <div class="hero-info">
+            <span class="hero-name">Ladino</span>
+            <div class="stat-bar hp-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">14/14</span>
+            </div>
+            <div class="stat-bar pa-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">3 PA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-slot" data-hero="3">
+          <div class="hero-portrait">
+            <div class="hero-icon">✝️</div>
+          </div>
+          <div class="hero-info">
+            <span class="hero-name">Clérigo</span>
+            <div class="stat-bar hp-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">16/16</span>
+            </div>
+            <div class="stat-bar pa-bar">
+              <div class="stat-fill" style="width: 100%"></div>
+              <span class="stat-text">2 PA</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Turn Indicator -->
+      <div id="turn-indicator">
+        <span class="turn-label">Turno do</span>
+        <span class="turn-hero">Guerreiro</span>
+        <span class="turn-round">Round 1</span>
+      </div>
+
+      <!-- Cards Area (Bottom) -->
+      <div id="cards-area">
+        <div id="cards-container">
+          <!-- Cards will be rendered here by JavaScript -->
+        </div>
+        <button id="btn-end-turn" class="end-turn-btn">Finalizar Turno</button>
+      </div>
+
+      <!-- Active Hero Portrait (Bottom Right) -->
+      <div id="active-hero-portrait">
+        <div class="portrait-frame">
+          <div class="portrait-icon">⚔️</div>
+        </div>
+        <div class="portrait-name">Guerreiro</div>
+      </div>
+    </div>
+
+    <!-- Game Master Dialogue -->
+    <div id="gm-dialogue" class="hidden">
+      <div class="gm-content">
+        <div class="gm-avatar">📖</div>
+        <div class="gm-text-container">
+          <p class="gm-text" id="gm-text"></p>
+        </div>
+        <button class="gm-continue" id="gm-continue">Continuar</button>
+      </div>
+    </div>
+
+    <!-- Target Selection Indicator -->
+    <div id="target-mode" class="hidden">
+      <p>Selecione um alvo</p>
+      <button id="cancel-target">Cancelar</button>
+    </div>
+
+    <!-- Combat Log -->
+    <div id="combat-log">
+      <div id="log-entries"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Configurações</h2>
+
+      <div class="setting-group">
+        <label class="setting-label">
+          <span>Narração por Voz</span>
+          <input type="checkbox" id="setting-voice" checked>
+          <span class="toggle-switch"></span>
+        </label>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">
+          <span>Velocidade da Fala</span>
+          <input type="range" id="setting-speech-rate" min="0.5" max="1.5" step="0.1" value="0.9">
+          <span class="range-value" id="speech-rate-value">0.9x</span>
+        </label>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">
+          <span>Volume</span>
+          <input type="range" id="setting-volume" min="0" max="1" step="0.1" value="1">
+          <span class="range-value" id="volume-value">100%</span>
+        </label>
+      </div>
+
+      <button class="modal-close" id="close-settings">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="src/main.js"></script>
+</body>
+
+</html>

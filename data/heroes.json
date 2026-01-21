@@ -1,0 +1,68 @@
+{
+  "heroes": [
+    {
+      "id": "guerreiro",
+      "nome": "Guerreiro",
+      "classe": "Guerreiro",
+      "icon": "⚔️",
+      "descricao": "Linha de frente, tanque e dano físico",
+      "stats": {
+        "pvMax": 24,
+        "pv": 24,
+        "paMax": 2,
+        "pa": 2,
+        "defesa": 3,
+        "ataque": 2
+      },
+      "deckIds": ["heavy_strike", "shield_wall", "taunt", "cleave", "rally_cry", "execute"]
+    },
+    {
+      "id": "mago",
+      "nome": "Mago",
+      "classe": "Mago",
+      "icon": "🔮",
+      "descricao": "Dano mágico e controle de campo",
+      "stats": {
+        "pvMax": 14,
+        "pv": 14,
+        "paMax": 3,
+        "pa": 3,
+        "defesa": 1,
+        "ataque": 0
+      },
+      "deckIds": ["fireball", "arcane_bolt", "freeze", "mana_shield", "chain_lightning", "meteor"]
+    },
+    {
+      "id": "ladino",
+      "nome": "Ladino",
+      "classe": "Ladino",
+      "icon": "🗡️",
+      "descricao": "Dano crítico e debuffs",
+      "stats": {
+        "pvMax": 16,
+        "pv": 16,
+        "paMax": 3,
+        "pa": 3,
+        "defesa": 2,
+        "ataque": 1
+      },
+      "deckIds": ["backstab", "poison_blade", "disarm_trap", "evasion", "mark_target", "assassinate"]
+    },
+    {
+      "id": "clerigo",
+      "nome": "Clérigo",
+      "classe": "Clérigo",
+      "icon": "✝️",
+      "descricao": "Cura e suporte",
+      "stats": {
+        "pvMax": 18,
+        "pv": 18,
+        "paMax": 2,
+        "pa": 2,
+        "defesa": 2,
+        "ataque": 0
+      },
+      "deckIds": ["heal", "bless", "turn_undead", "divine_shield", "purify", "resurrection"]
+    }
+  ]
+}

@@ -1,0 +1,499 @@
+{
+    "enemies": [
+        {
+            "id": "sombra_menor",
+            "nome": "Sombra Menor",
+            "tipo": "sombra",
+            "modelo": "placeholder-monster.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 8,
+                "pv": 8,
+                "defesa": 0,
+                "ataque": 1
+            },
+            "ataques": [
+                {
+                    "nome": "Toque Sombrio",
+                    "dano": 3,
+                    "dados": "1d4"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "normal"
+            },
+            "recompensas": {
+                "xp": 5
+            }
+        },
+        {
+            "id": "goblin",
+            "nome": "Goblin",
+            "tipo": "humanoide",
+            "modelo": "goblin.glb",
+            "escala": 0.8,
+            "stats": {
+                "pvMax": 12,
+                "pv": 12,
+                "defesa": 1,
+                "ataque": 2
+            },
+            "ataques": [
+                {
+                    "nome": "Facada Sorrateira",
+                    "dano": 4,
+                    "dados": "1d6"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "covarde"
+            },
+            "recompensas": {
+                "xp": 10
+            }
+        },
+        {
+            "id": "esqueleto",
+            "nome": "Esqueleto",
+            "tipo": "morto_vivo",
+            "modelo": "skeleton.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 10,
+                "pv": 10,
+                "defesa": 1,
+                "ataque": 1
+            },
+            "ataques": [
+                {
+                    "nome": "Golpe de Osso",
+                    "dano": 5,
+                    "dados": "1d6"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "mais_proximo",
+                "agressividade": "normal"
+            },
+            "vulnerabilidades": [
+                "sagrado"
+            ],
+            "recompensas": {
+                "xp": 8
+            }
+        },
+        {
+            "id": "zumbi",
+            "nome": "Zumbi",
+            "tipo": "morto_vivo",
+            "modelo": "zombie.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 15,
+                "pv": 15,
+                "defesa": 0,
+                "ataque": 2
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida",
+                    "dano": 6,
+                    "dados": "1d8"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "vulnerabilidades": [
+                "sagrado",
+                "fogo"
+            ],
+            "recompensas": {
+                "xp": 12
+            }
+        },
+        {
+            "id": "lobo",
+            "nome": "Lobo",
+            "tipo": "besta",
+            "modelo": "wolf.glb",
+            "escala": 0.9,
+            "stats": {
+                "pvMax": 11,
+                "pv": 11,
+                "defesa": 1,
+                "ataque": 2
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida Feroz",
+                    "dano": 5,
+                    "dados": "1d6+1"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "recompensas": {
+                "xp": 10
+            }
+        },
+        {
+            "id": "rato_gigante",
+            "nome": "Rato Gigante",
+            "tipo": "besta",
+            "modelo": "giant_rat.glb",
+            "escala": 0.6,
+            "stats": {
+                "pvMax": 6,
+                "pv": 6,
+                "defesa": 0,
+                "ataque": 1
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida Infectada",
+                    "dano": 2,
+                    "dados": "1d4",
+                    "status": "envenenado"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "covarde"
+            },
+            "recompensas": {
+                "xp": 4
+            }
+        },
+        {
+            "id": "ghoul",
+            "nome": "Carniçal",
+            "tipo": "morto_vivo",
+            "modelo": "ghoul.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 18,
+                "pv": 18,
+                "defesa": 1,
+                "ataque": 3
+            },
+            "ataques": [
+                {
+                    "nome": "Garras Paralisantes",
+                    "dano": 7,
+                    "dados": "2d4",
+                    "status": "paralisado"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "vulnerabilidades": [
+                "sagrado"
+            ],
+            "recompensas": {
+                "xp": 20
+            }
+        },
+        {
+            "id": "orc",
+            "nome": "Orc",
+            "tipo": "humanoide",
+            "modelo": "orc.glb",
+            "escala": 1.2,
+            "stats": {
+                "pvMax": 20,
+                "pv": 20,
+                "defesa": 2,
+                "ataque": 3
+            },
+            "ataques": [
+                {
+                    "nome": "Machado Brutal",
+                    "dano": 8,
+                    "dados": "1d10"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "maior_dano",
+                "agressividade": "agressivo"
+            },
+            "recompensas": {
+                "xp": 25
+            }
+        },
+        {
+            "id": "kobold",
+            "nome": "Kobold",
+            "tipo": "humanoide",
+            "modelo": "kobold.glb",
+            "escala": 0.7,
+            "stats": {
+                "pvMax": 8,
+                "pv": 8,
+                "defesa": 1,
+                "ataque": 1
+            },
+            "ataques": [
+                {
+                    "nome": "Lança Improvisada",
+                    "dano": 3,
+                    "dados": "1d4"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "covarde"
+            },
+            "recompensas": {
+                "xp": 6
+            }
+        },
+        {
+            "id": "troll",
+            "nome": "Troll",
+            "tipo": "gigante",
+            "modelo": "troll.glb",
+            "escala": 1.5,
+            "stats": {
+                "pvMax": 35,
+                "pv": 35,
+                "defesa": 2,
+                "ataque": 4,
+                "regeneracao": 3
+            },
+            "ataques": [
+                {
+                    "nome": "Golpe Esmagador",
+                    "dano": 10,
+                    "dados": "2d8"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "maior_dano",
+                "agressividade": "agressivo"
+            },
+            "vulnerabilidades": [
+                "fogo"
+            ],
+            "recompensas": {
+                "xp": 50
+            }
+        },
+        {
+            "id": "ogro",
+            "nome": "Ogro",
+            "tipo": "gigante",
+            "modelo": "ogre.glb",
+            "escala": 1.4,
+            "stats": {
+                "pvMax": 40,
+                "pv": 40,
+                "defesa": 2,
+                "ataque": 5
+            },
+            "ataques": [
+                {
+                    "nome": "Porrete Gigante",
+                    "dano": 12,
+                    "dados": "2d10"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "mais_proximo",
+                "agressividade": "normal"
+            },
+            "recompensas": {
+                "xp": 60
+            }
+        },
+        {
+            "id": "lobisomem",
+            "nome": "Lobisomem",
+            "tipo": "licantropo",
+            "modelo": "werewolf.glb",
+            "escala": 1.3,
+            "stats": {
+                "pvMax": 50,
+                "pv": 50,
+                "defesa": 3,
+                "ataque": 5
+            },
+            "ataques": [
+                {
+                    "nome": "Fúria Selvagem",
+                    "dano": 14,
+                    "dados": "3d6"
+                },
+                {
+                    "nome": "Uivo Aterrorizante",
+                    "dano": 0,
+                    "status": "amedrontado"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "vulnerabilidades": [
+                "prata"
+            ],
+            "isBoss": true,
+            "recompensas": {
+                "xp": 100,
+                "carta": true
+            }
+        },
+        {
+            "id": "vampiro_spawn",
+            "nome": "Cria de Vampiro",
+            "tipo": "morto_vivo",
+            "modelo": "vampire_spawn.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 25,
+                "pv": 25,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida Vampírica",
+                    "dano": 8,
+                    "dados": "2d6",
+                    "lifesteal": 4
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "vulnerabilidades": [
+                "sagrado",
+                "fogo"
+            ],
+            "recompensas": {
+                "xp": 35
+            }
+        },
+        {
+            "id": "beholder",
+            "nome": "Contemplador",
+            "tipo": "aberracao",
+            "modelo": "beholder.glb",
+            "escala": 1.2,
+            "stats": {
+                "pvMax": 80,
+                "pv": 80,
+                "defesa": 4,
+                "ataque": 6
+            },
+            "ataques": [
+                {
+                    "nome": "Raio de Desintegração",
+                    "dano": 20,
+                    "dados": "4d8"
+                },
+                {
+                    "nome": "Raio de Medo",
+                    "dano": 0,
+                    "status": "amedrontado"
+                },
+                {
+                    "nome": "Raio de Paralisia",
+                    "dano": 0,
+                    "status": "paralisado"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "maior_dano",
+                "agressividade": "calculista"
+            },
+            "isBoss": true,
+            "fases": 2,
+            "recompensas": {
+                "xp": 200,
+                "carta": true
+            }
+        },
+        {
+            "id": "dragao_vermelho_jovem",
+            "nome": "Dragão Vermelho Jovem",
+            "tipo": "dragao",
+            "modelo": "young_red_dragon.glb",
+            "escala": 2.0,
+            "stats": {
+                "pvMax": 120,
+                "pv": 120,
+                "defesa": 5,
+                "ataque": 8
+            },
+            "ataques": [
+                {
+                    "nome": "Sopro de Fogo",
+                    "dano": 25,
+                    "dados": "6d6",
+                    "alvos": "todos"
+                },
+                {
+                    "nome": "Garras Dracônicas",
+                    "dano": 15,
+                    "dados": "3d8"
+                },
+                {
+                    "nome": "Cauda Devastadora",
+                    "dano": 12,
+                    "dados": "2d10"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "maior_dano",
+                "agressividade": "agressivo"
+            },
+            "resistencias": [
+                "fogo"
+            ],
+            "isBoss": true,
+            "fases": 3,
+            "recompensas": {
+                "xp": 500,
+                "carta": true
+            }
+        },
+        {
+            "id": "mimic",
+            "nome": "Mímico",
+            "tipo": "aberracao",
+            "modelo": "mimic.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 30,
+                "pv": 30,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida Adesiva",
+                    "dano": 10,
+                    "dados": "2d8",
+                    "status": "preso"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "emboscador"
+            },
+            "surpresa": true,
+            "recompensas": {
+                "xp": 40
+            }
+        }
+    ]
+}
