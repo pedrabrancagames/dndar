@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { ParticleSystem } from './ParticleSystem.js';
 
 export class ARSceneManager {
     constructor(containerId) {
@@ -38,6 +39,9 @@ export class ARSceneManager {
 
         // Controller para seleção em AR
         this.controller = null;
+
+        // Sistema de partículas
+        this.particleSystem = null;
     }
 
     on(evento, callback) {
@@ -82,6 +86,9 @@ export class ARSceneManager {
         this.setupLoaders();
         this.setupARLighting();
         this.createReticle();
+
+        // Inicializar sistema de partículas
+        this.particleSystem = new ParticleSystem(this.scene);
 
         return this.isARSupported;
     }
@@ -417,9 +424,14 @@ export class ARSceneManager {
         // Implementação futura para barra de vida sobre o inimigo
     }
 
-    mostrarDanoInimigo(instanceId, dano) {
+    mostrarDanoInimigo(instanceId, dano, tipoEfeito = 'dano') {
         const mesh = this.enemyMeshes.get(instanceId);
         if (!mesh) return;
+
+        // Efeito de partículas
+        if (this.particleSystem) {
+            this.particleSystem.dispararEfeito(tipoEfeito, mesh.position);
+        }
 
         // Flash vermelho
         mesh.traverse((child) => {
@@ -436,11 +448,64 @@ export class ARSceneManager {
     }
 
     /**
+     * Mostra efeito de cura em um herói (para uso futuro)
+     */
+    mostrarCura(position) {
+        if (this.particleSystem) {
+            this.particleSystem.efeitoCura(position);
+        }
+    }
+
+    /**
+     * Mostra efeito de buff
+     */
+    mostrarBuff(position) {
+        if (this.particleSystem) {
+            this.particleSystem.efeitoBuff(position);
+        }
+    }
+
+    /**
+     * Mostra efeito de debuff em um inimigo
+     */
+    mostrarDebuff(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh || !this.particleSystem) return;
+
+        this.particleSystem.efeitoDebuff(mesh.position);
+    }
+
+    /**
+     * Mostra efeito de fogo
+     */
+    mostrarFogo(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh || !this.particleSystem) return;
+
+        this.particleSystem.efeitoFogo(mesh.position);
+    }
+
+    /**
+     * Mostra efeito de gelo
+     */
+    mostrarGelo(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh || !this.particleSystem) return;
+
+        this.particleSystem.efeitoGelo(mesh.position);
+    }
+
+    /**
      * Remove inimigo com animação de morte
      */
     removerInimigo(instanceId) {
         const mesh = this.enemyMeshes.get(instanceId);
         if (!mesh) return;
+
+        // Efeito de partículas de morte
+        if (this.particleSystem) {
+            this.particleSystem.efeitoMorte(mesh.position);
+        }
 
         // Animação de morte: shrink + fade
         const duration = 500;

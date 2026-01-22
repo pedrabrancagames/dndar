@@ -227,6 +227,17 @@ class Game {
         this.combatManager.on('cartaUsada', async (data) => {
             this.hud.adicionarLog(`${data.usuario} usa ${data.carta} em ${data.alvo}`);
 
+            // Determinar tipo de efeito visual baseado na carta
+            const cartaNome = data.carta.toLowerCase();
+            let tipoEfeito = 'dano';
+            if (cartaNome.includes('fogo') || cartaNome.includes('fire') || cartaNome.includes('meteor')) {
+                tipoEfeito = 'fogo';
+            } else if (cartaNome.includes('gelo') || cartaNome.includes('congela') || cartaNome.includes('freeze')) {
+                tipoEfeito = 'gelo';
+            } else if (cartaNome.includes('raio') || cartaNome.includes('lightning') || cartaNome.includes('corrente')) {
+                tipoEfeito = 'raio';
+            }
+
             for (const resultado of data.resultados) {
                 if (resultado.tipo === 'dano') {
                     const msg = resultado.critico
@@ -234,9 +245,9 @@ class Game {
                         : `${resultado.valor} de dano`;
                     this.hud.adicionarLog(msg, 'damage');
 
-                    // Efeito visual no inimigo
+                    // Efeito visual no inimigo com partículas
                     if (data.alvoData?.instanceId) {
-                        this.sceneManager?.mostrarDanoInimigo(data.alvoData.instanceId, resultado.valor);
+                        this.sceneManager?.mostrarDanoInimigo(data.alvoData.instanceId, resultado.valor, tipoEfeito);
                         this.sceneManager?.atualizarBarraVida(data.alvoData.instanceId, data.alvoData.pvPercent);
                     }
 
@@ -250,6 +261,7 @@ class Game {
 
                 if (resultado.tipo === 'cura') {
                     this.hud.adicionarLog(`${resultado.alvo} curou ${resultado.valor} PV`, 'heal');
+                    // Efeito de partículas de cura (será implementado quando heróis tiverem posição 3D)
                 }
 
                 if (resultado.tipo === 'buff') {
@@ -258,6 +270,10 @@ class Game {
 
                 if (resultado.tipo === 'debuff') {
                     this.hud.adicionarLog(`${resultado.alvo} foi afetado por ${resultado.debuff}`, 'damage');
+                    // Efeito de debuff no inimigo
+                    if (data.alvoData?.instanceId) {
+                        this.sceneManager?.mostrarDebuff?.(data.alvoData.instanceId);
+                    }
                 }
             }
 
