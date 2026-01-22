@@ -918,21 +918,17 @@ class Game {
 
         // Limpar managers antigos se existirem
         if (this.arSceneManager) {
-            console.log('[Game] Limpando arSceneManager antigo');
             this.arSceneManager.dispose();
             this.arSceneManager = null;
         }
         if (this.sceneManager) {
-            console.log('[Game] Limpando sceneManager antigo');
             this.sceneManager.dispose();
             this.sceneManager = null;
         }
 
         // Tentar inicializar AR
-        console.log('[Game] Tentando inicializar AR...');
         const arManager = new ARSceneManager('scene-container');
         const arSupported = await arManager.init();
-        console.log('[Game] AR suportado:', arSupported);
 
         if (!arSupported) {
             // Limpar ARSceneManager antes de usar fallback
@@ -971,9 +967,7 @@ class Game {
         });
 
         // Tentar iniciar sessão AR
-        console.log('[Game] Iniciando sessão AR...');
         const arStarted = await arManager.startAR();
-        console.log('[Game] AR iniciado:', arStarted);
 
         if (!arStarted) {
             // Limpar ARSceneManager antes de usar fallback
@@ -985,20 +979,17 @@ class Game {
         }
 
         // Sucesso - usar modo AR
-        console.log('[Game] Configurando AR como sceneManager');
         this.arSceneManager = arManager;
         this.sceneManager = arManager;
         this.isARMode = true;
 
         // Mostrar briefing
-        console.log('[Game] Mostrando briefing...');
         await this.gameMaster.apresentarBriefing({
             titulo: missao.nome,
             texto: missao.briefing
         });
 
         // Iniciar combate com os inimigos da missão (forçar reset se houver combate anterior)
-        console.log('[Game] Iniciando combate da missão');
         const configInimigos = this.campaignManager.getInimigosParaCombate();
         this.combatManager.iniciarCombate(configInimigos, true);
 

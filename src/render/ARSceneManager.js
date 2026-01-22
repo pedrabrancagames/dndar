@@ -227,11 +227,9 @@ export class ARSceneManager {
     }
 
     onARSelect() {
-        console.log('[ARSceneManager] onARSelect chamado, isARActive:', this.isARActive, 'enemiesPlaced:', this.enemiesPlaced, 'reticle.visible:', this.reticle?.visible, 'enemyMeshes.size:', this.enemyMeshes.size);
         if (!this.isARActive) return;
 
         if (!this.enemiesPlaced && this.reticle.visible) {
-            console.log('[ARSceneManager] Posicionando inimigos no reticle');
             this.placeEnemiesAtReticle();
             return;
         }
@@ -304,7 +302,6 @@ export class ARSceneManager {
     }
 
     async adicionarInimigos(inimigos) {
-        console.log('[ARSceneManager] adicionarInimigos chamado com', inimigos?.length, 'inimigos');
         const cores = [0xff4444, 0x44ff44, 0x4444ff, 0xffff44, 0xff44ff, 0x44ffff];
 
         for (let index = 0; index < inimigos.length; index++) {
