@@ -390,37 +390,112 @@ export class ARSceneManager {
     }
 
     /**
-     * Adiciona inimigos à cena AR
+     * Adiciona inimigos à cena AR (usa placeholders imediatos)
      */
     async adicionarInimigos(inimigos) {
+        console.log('[ARSceneManager] Adicionando', inimigos.length, 'inimigos');
+
+        // Cores para diferenciar inimigos
+        const cores = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
+
         let index = 0;
         for (const inimigo of inimigos) {
-            try {
-                const modelPath = `/public/assets/models/${inimigo.modelo}`;
-                const model = await this.loadModel(modelPath);
+            // Criar placeholder IMEDIATO (cubo colorido)
+            const cor = cores[index % cores.length];
+            const placeholder = this.criarPlaceholderVisivel(inimigo, cor);
 
-                // Escala menor para AR (mundo real)
-                model.scale.setScalar((inimigo.escala || 1) * 0.3);
+            this.scene.add(placeholder);
+            this.enemyMeshes.set(inimigo.instanceId, placeholder);
 
-                // Inicialmente invisível até ser posicionado
-                model.visible = false;
+            console.log('[ARSceneManager] Placeholder criado para:', inimigo.nome, inimigo.instanceId);
 
-                model.userData = {
-                    instanceId: inimigo.instanceId,
-                    tipo: 'inimigo',
-                    selecionavel: true,
-                    baseY: 0
-                };
+            // Tentar carregar modelo 3D em background (opcional)
+            this.carregarModeloBackground(inimigo, placeholder);
 
-                this.scene.add(model);
-                this.enemyMeshes.set(inimigo.instanceId, model);
+            index++;
+        }
 
-                index++;
-            } catch (error) {
-                console.error(`[ARSceneManager] Erro ao carregar ${inimigo.nome}:`, error);
-                this.adicionarInimigoPlaceholder(inimigo, index);
-                index++;
-            }
+        console.log('[ARSceneManager] Total de inimigos adicionados:', this.enemyMeshes.size);
+    }
+
+    /**
+     * Cria um placeholder visível e colorido
+     */
+    criarPlaceholderVisivel(inimigo, cor) {
+        // Grupo para conter o placeholder e label
+        const group = new THREE.Group();
+
+        // Corpo do inimigo (cubo ou esfera)
+        const bodyGeometry = new THREE.CapsuleGeometry(0.1, 0.2, 4, 8);
+        const bodyMaterial = new THREE.MeshStandardMaterial({
+            color: cor,
+            metalness: 0.3,
+            roughness: 0.7
+        });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 0.15;
+        group.add(body);
+
+        // Olhos (esferas brancas)
+        const eyeGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.04, 0.22, 0.08);
+        group.add(leftEye);
+
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.04, 0.22, 0.08);
+        group.add(rightEye);
+
+        // Pupilas
+        const pupilGeometry = new THREE.SphereGeometry(0.015, 8, 8);
+        const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+        const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        leftPupil.position.set(-0.04, 0.22, 0.1);
+        group.add(leftPupil);
+
+        const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        rightPupil.position.set(0.04, 0.22, 0.1);
+        group.add(rightPupil);
+
+        // Configurar grupo
+        group.visible = false; // Será mostrado quando posicionado
+        group.userData = {
+            instanceId: inimigo.instanceId,
+            nome: inimigo.nome,
+            tipo: 'inimigo',
+            selecionavel: true,
+            baseY: 0
+        };
+
+        return group;
+    }
+
+    /**
+     * Tenta carregar modelo 3D em background (substituindo placeholder)
+     */
+    async carregarModeloBackground(inimigo, placeholder) {
+        try {
+            const modelPath = `/public/assets/models/${inimigo.modelo}`;
+            const model = await this.loadModel(modelPath);
+
+            // Se carregou com sucesso, substituir placeholder
+            model.scale.setScalar((inimigo.escala || 1) * 0.3);
+            model.visible = placeholder.visible;
+            model.position.copy(placeholder.position);
+            model.userData = { ...placeholder.userData };
+
+            // Remover placeholder e adicionar modelo
+            this.scene.remove(placeholder);
+            this.scene.add(model);
+            this.enemyMeshes.set(inimigo.instanceId, model);
+
+            console.log('[ARSceneManager] Modelo 3D carregado para:', inimigo.nome);
+        } catch (error) {
+            console.warn('[ARSceneManager] Usando placeholder para:', inimigo.nome, error.message);
+            // Manter placeholder - já está na cena
         }
     }
 
