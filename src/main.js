@@ -8,6 +8,8 @@ import { HUD } from './ui/HUD.js';
 import { SceneManager } from './render/SceneManager.js';
 import { ARSceneManager } from './render/ARSceneManager.js';
 import { AudioManager } from './audio/AudioManager.js';
+import { SaveManager } from './game/SaveManager.js';
+import { CampaignManager } from './game/CampaignManager.js';
 
 class Game {
     constructor() {
@@ -15,12 +17,17 @@ class Game {
         this.gameMaster = new GameMaster();
         this.hud = new HUD();
         this.audioManager = new AudioManager();
-        this.sceneManager = null; // Inicializado quando entrar em combate
-        this.arSceneManager = null; // Inicializado quando entrar em modo AR
+        this.saveManager = new SaveManager();
+        this.campaignManager = new CampaignManager();
+        this.sceneManager = null;
+        this.arSceneManager = null;
         this.isARMode = false;
 
         this.telaAtual = 'loading';
         this.elementos = {};
+        this.saveData = null;
+        this.settings = null;
+        this.missaoSelecionada = null;
     }
 
     /**
@@ -42,7 +49,18 @@ class Game {
             return;
         }
 
-        this.atualizarLoading(40, 'Carregando Game Master...');
+        this.atualizarLoading(30, 'Carregando campanha...');
+
+        // Carregar campanha
+        await this.campaignManager.carregarCampanha();
+
+        this.atualizarLoading(40, 'Carregando progresso...');
+
+        // Carregar save e configurações
+        this.saveData = this.saveManager.carregar();
+        this.settings = this.saveManager.carregarConfiguracoes();
+
+        this.atualizarLoading(50, 'Carregando Game Master...');
 
         // Carregar configurações salvas
         this.carregarConfiguracoes();
@@ -53,7 +71,7 @@ class Game {
         this.hud.init();
         this.setupHUDCallbacks();
 
-        this.atualizarLoading(80, 'Preparando...');
+        this.atualizarLoading(70, 'Preparando...');
 
         // Configurar callbacks do combat manager
         this.setupCombatCallbacks();
@@ -61,10 +79,17 @@ class Game {
         // Configurar callbacks do game master
         this.setupGMCallbacks();
 
-        this.atualizarLoading(90, 'Carregando sons...');
+        // Configurar callbacks das novas telas
+        this.setupSettingsCallbacks();
+        this.setupMissionCallbacks();
+
+        this.atualizarLoading(85, 'Carregando sons...');
 
         // Carregar sons
         await this.audioManager.carregarSons();
+
+        // Aplicar configurações de áudio
+        this.aplicarConfiguracoesAudio();
 
         this.atualizarLoading(100, 'Pronto!');
 
@@ -355,6 +380,9 @@ class Game {
 
                 // Som de vitória
                 this.audioManager.tocarAcao('victory');
+
+                // Salvar progresso
+                this.salvarProgressoVitoria(data.recompensas || { xp: 0, ouro: 0 });
 
                 // Limpar todos os inimigos restantes imediatamente
                 this.sceneManager?.limparInimigos();
@@ -654,6 +682,295 @@ class Game {
                 console.warn('[Game] Erro ao carregar configurações:', e);
             }
         }
+    }
+
+    /**
+     * Aplica configurações de áudio
+     */
+    aplicarConfiguracoesAudio() {
+        if (!this.settings) return;
+
+        this.audioManager.setVolumeMusica(this.settings.audio.musicaVolume);
+        this.audioManager.setVolumeSFX(this.settings.audio.sfxVolume);
+        this.audioManager.setMute(this.settings.audio.mudo);
+    }
+
+    /**
+     * Configura callbacks da tela de configurações
+     */
+    setupSettingsCallbacks() {
+        // Botão de configurações na home
+        this.elementos.btnSettings?.addEventListener('click', () => {
+            this.irParaTela('settings');
+            this.carregarConfiguracoesNaTela();
+        });
+
+        // Botão voltar
+        document.getElementById('settings-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+        });
+
+        // Sliders de volume
+        const musicVolume = document.getElementById('music-volume');
+        const sfxVolume = document.getElementById('sfx-volume');
+        const voiceVolume = document.getElementById('voice-volume');
+        const muteToggle = document.getElementById('mute-toggle');
+
+        musicVolume?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            document.getElementById('music-volume-value').textContent = `${value}%`;
+            this.audioManager.setVolumeMusica(value / 100);
+        });
+
+        sfxVolume?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            document.getElementById('sfx-volume-value').textContent = `${value}%`;
+            this.audioManager.setVolumeSFX(value / 100);
+        });
+
+        voiceVolume?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            document.getElementById('voice-volume-value').textContent = `${value}%`;
+        });
+
+        muteToggle?.addEventListener('change', (e) => {
+            this.audioManager.setMute(e.target.checked);
+        });
+
+        // Botão salvar
+        document.getElementById('save-settings-btn')?.addEventListener('click', () => {
+            this.salvarConfiguracoes();
+            this.irParaTela('home');
+        });
+
+        // Botão resetar
+        document.getElementById('reset-save-btn')?.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja apagar todo o progresso?')) {
+                this.saveManager.resetar();
+                this.saveData = this.saveManager.getDefaultSave();
+                alert('Progresso resetado!');
+            }
+        });
+    }
+
+    /**
+     * Carrega configurações na tela
+     */
+    carregarConfiguracoesNaTela() {
+        const musicVolume = document.getElementById('music-volume');
+        const sfxVolume = document.getElementById('sfx-volume');
+        const voiceVolume = document.getElementById('voice-volume');
+        const muteToggle = document.getElementById('mute-toggle');
+
+        if (this.settings) {
+            if (musicVolume) {
+                musicVolume.value = this.settings.audio.musicaVolume * 100;
+                document.getElementById('music-volume-value').textContent = `${Math.round(this.settings.audio.musicaVolume * 100)}%`;
+            }
+            if (sfxVolume) {
+                sfxVolume.value = this.settings.audio.sfxVolume * 100;
+                document.getElementById('sfx-volume-value').textContent = `${Math.round(this.settings.audio.sfxVolume * 100)}%`;
+            }
+            if (voiceVolume) {
+                voiceVolume.value = this.settings.audio.vozVolume * 100;
+                document.getElementById('voice-volume-value').textContent = `${Math.round(this.settings.audio.vozVolume * 100)}%`;
+            }
+            if (muteToggle) {
+                muteToggle.checked = this.settings.audio.mudo;
+            }
+        }
+    }
+
+    /**
+     * Salva configurações
+     */
+    salvarConfiguracoes() {
+        this.settings.audio.musicaVolume = parseInt(document.getElementById('music-volume')?.value || 30) / 100;
+        this.settings.audio.sfxVolume = parseInt(document.getElementById('sfx-volume')?.value || 70) / 100;
+        this.settings.audio.vozVolume = parseInt(document.getElementById('voice-volume')?.value || 80) / 100;
+        this.settings.audio.mudo = document.getElementById('mute-toggle')?.checked || false;
+
+        this.saveManager.salvarConfiguracoes(this.settings);
+    }
+
+    /**
+     * Configura callbacks da tela de missões
+     */
+    setupMissionCallbacks() {
+        // Botão combate agora leva para seleção de missões
+        this.elementos.btnCombat?.removeEventListener('click', () => { });
+        this.elementos.btnCombat?.addEventListener('click', () => {
+            this.irParaTela('mission');
+            this.renderizarListaMissoes();
+        });
+
+        // Botão voltar das missões
+        document.getElementById('mission-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+        });
+
+        // Botão iniciar missão
+        document.getElementById('start-mission-btn')?.addEventListener('click', () => {
+            if (this.missaoSelecionada) {
+                this.iniciarMissao(this.missaoSelecionada);
+            }
+        });
+    }
+
+    /**
+     * Renderiza lista de missões
+     */
+    renderizarListaMissoes() {
+        const missionList = document.getElementById('mission-list');
+        if (!missionList) return;
+
+        const missoes = this.campaignManager.getMissoesDisponiveis(this.saveData);
+        const progresso = this.campaignManager.getProgressoCapitulo(this.saveData);
+
+        // Atualizar barra de progresso
+        const progressFill = document.getElementById('chapter-progress-fill');
+        const progressText = document.getElementById('chapter-progress-text');
+        if (progressFill) progressFill.style.width = `${progresso.percent}%`;
+        if (progressText) progressText.textContent = `${progresso.completas}/${progresso.total} missões`;
+
+        // Limpar lista
+        missionList.innerHTML = '';
+
+        // Renderizar missões
+        missoes.forEach(missao => {
+            const item = document.createElement('div');
+            item.className = 'mission-item';
+
+            if (missao.completa) item.classList.add('complete');
+            if (!missao.disponivel) item.classList.add('locked');
+            if (missao.boss) item.classList.add('boss');
+
+            let statusIcon = '▶️';
+            if (missao.completa) statusIcon = '✅';
+            if (!missao.disponivel) statusIcon = '🔒';
+            if (missao.boss) statusIcon = missao.completa ? '✅' : '👑';
+
+            item.innerHTML = `
+                <div class="mission-number">${missao.id}</div>
+                <div class="mission-item-info">
+                    <h4>${missao.nome}</h4>
+                    <p>${missao.descricao}</p>
+                </div>
+                <span class="mission-status-icon">${statusIcon}</span>
+            `;
+
+            if (missao.disponivel) {
+                item.addEventListener('click', () => {
+                    this.selecionarMissao(missao);
+
+                    // Atualizar seleção visual
+                    missionList.querySelectorAll('.mission-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                });
+            }
+
+            missionList.appendChild(item);
+        });
+    }
+
+    /**
+     * Seleciona uma missão para ver detalhes
+     */
+    selecionarMissao(missao) {
+        this.missaoSelecionada = missao;
+
+        const title = document.getElementById('mission-title');
+        const description = document.getElementById('mission-description');
+        const difficulty = document.getElementById('mission-difficulty');
+        const rewards = document.getElementById('mission-rewards');
+        const startBtn = document.getElementById('start-mission-btn');
+
+        if (title) title.textContent = missao.nome;
+        if (description) description.textContent = missao.briefing || missao.descricao;
+
+        const dificuldadeMap = {
+            'facil': '⚔️ Fácil',
+            'medio': '⚔️⚔️ Médio',
+            'dificil': '⚔️⚔️⚔️ Difícil',
+            'boss': '👑 Boss'
+        };
+        if (difficulty) difficulty.textContent = dificuldadeMap[missao.dificuldade] || missao.dificuldade;
+
+        if (rewards) rewards.textContent = `🏆 ${missao.recompensas.xp} XP`;
+
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.textContent = missao.completa ? 'Jogar Novamente' : 'Iniciar Missão';
+        }
+    }
+
+    /**
+     * Inicia uma missão
+     */
+    async iniciarMissao(missao) {
+        this.campaignManager.setMissaoAtual(missao);
+
+        this.irParaTela('combat');
+
+        // Inicializar cena 3D se ainda não foi
+        if (!this.sceneManager) {
+            this.sceneManager = new SceneManager('scene-container');
+            await this.sceneManager.init();
+
+            this.sceneManager.on('inimigoClicado', ({ instanceId }) => {
+                if (this.combatManager.modoSelecaoAlvo) {
+                    const resultado = this.combatManager.selecionarAlvo(instanceId);
+                    if (resultado.sucesso) {
+                        this.hud.esconderModoSelecao();
+                        this.sceneManager.limparDestaques();
+                    }
+                }
+            });
+        }
+
+        // Mostrar briefing
+        await this.gameMaster.apresentarBriefing({
+            titulo: missao.nome,
+            texto: missao.briefing
+        });
+
+        // Iniciar combate com os inimigos da missão
+        const configInimigos = this.campaignManager.getInimigosParaCombate();
+        this.combatManager.iniciarCombate(configInimigos);
+    }
+
+    /**
+     * Salva progresso após vitória
+     */
+    salvarProgressoVitoria(recompensas) {
+        // Adicionar XP a todos os heróis
+        const xpPorHeroi = Math.floor(recompensas.xp / 4);
+        ['guerreiro', 'mago', 'ladino', 'clerigo'].forEach(heroiId => {
+            this.saveData = this.saveManager.adicionarXP(heroiId, xpPorHeroi, this.saveData);
+        });
+
+        // Marcar missão como completa
+        if (this.missaoSelecionada) {
+            this.saveData = this.saveManager.completarMissao(
+                this.missaoSelecionada.capituloId,
+                this.missaoSelecionada.id,
+                this.saveData
+            );
+        }
+
+        // Adicionar ouro
+        this.saveData.inventario.ouro += recompensas.ouro || 0;
+
+        // Registrar estatísticas
+        this.saveData = this.saveManager.registrarCombate('vitoria', {
+            inimigosDerotados: this.combatManager.inimigos?.length || 0
+        }, this.saveData);
+
+        // Restaurar heróis
+        this.saveData = this.saveManager.restaurarHerois(this.saveData);
+
+        // Salvar
+        this.saveManager.salvar(this.saveData);
     }
 }
 

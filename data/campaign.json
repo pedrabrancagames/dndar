@@ -1,0 +1,141 @@
+{
+    "capitulo1": {
+        "id": 1,
+        "nome": "O Despertar",
+        "descricao": "Sombras estranhas começam a surgir em seu bairro. Algo maligno desperta nas profundezas.",
+        "missoes": [
+            {
+                "id": 1,
+                "nome": "Primeiros Sussurros",
+                "descricao": "Investigar relatos de criaturas estranhas avistadas nas redondezas.",
+                "briefing": "Moradores relatam avistamentos de criaturas sombrias nos arredores. Como defensores do bairro, vocês devem investigar e eliminar qualquer ameaça.",
+                "objetivos": [
+                    "Derrotar as criaturas invasoras"
+                ],
+                "inimigos": [
+                    {
+                        "id": "sombra_menor"
+                    },
+                    {
+                        "id": "rato_gigante"
+                    }
+                ],
+                "recompensas": {
+                    "xp": 20,
+                    "ouro": 10
+                },
+                "dificuldade": "facil",
+                "dialogoVitoria": "Excelente trabalho, heróis! As criaturas foram eliminadas, mas algo me diz que isso foi apenas o começo.",
+                "dialogoDerrota": "Recuem e se reagrupem. As sombras são mais perigosas do que parecem."
+            },
+            {
+                "id": 2,
+                "nome": "Rastros na Escuridão",
+                "descricao": "Seguir os rastros das sombras até sua origem.",
+                "briefing": "Os rastros das criaturas levam a um local abandonado. Preparem-se para encontrar resistência.",
+                "objetivos": [
+                    "Investigar a origem das sombras",
+                    "Eliminar os guardas"
+                ],
+                "inimigos": [
+                    {
+                        "id": "goblin"
+                    },
+                    {
+                        "id": "goblin"
+                    },
+                    {
+                        "id": "kobold"
+                    }
+                ],
+                "recompensas": {
+                    "xp": 30,
+                    "ouro": 15
+                },
+                "dificuldade": "facil",
+                "dialogoVitoria": "Esses goblins parecem servir a algo maior. Encontraram um símbolo estranho entre seus pertences.",
+                "dialogoDerrota": "Os goblins são mais numerosos do que esperávamos. Precisamos de uma estratégia melhor."
+            },
+            {
+                "id": 3,
+                "nome": "O Covil dos Mortos",
+                "descricao": "Adentrar o cemitério abandonado onde os mortos caminham.",
+                "briefing": "O símbolo encontrado aponta para o antigo cemitério. Mortos-vivos foram avistados. Clérigo, suas habilidades serão essenciais.",
+                "objetivos": [
+                    "Purificar o cemitério",
+                    "Derrotar os mortos-vivos"
+                ],
+                "inimigos": [
+                    {
+                        "id": "esqueleto"
+                    },
+                    {
+                        "id": "esqueleto"
+                    },
+                    {
+                        "id": "zumbi"
+                    }
+                ],
+                "recompensas": {
+                    "xp": 40,
+                    "ouro": 20
+                },
+                "dificuldade": "medio",
+                "dialogoVitoria": "O cemitério está purificado, mas a necromancia que os animou veio de algum lugar. Devemos ir mais fundo.",
+                "dialogoDerrota": "Os mortos-vivos não param de se levantar! Precisamos encontrar a fonte do poder que os anima."
+            },
+            {
+                "id": 4,
+                "nome": "A Cripta Profanada",
+                "descricao": "Descer nas profundezas da cripta onde o mal se fortalece.",
+                "briefing": "A cripta sob o cemitério pulsa com energia sombria. Vocês encontrarão criaturas mais poderosas lá embaixo. Fiquem em alerta.",
+                "objetivos": [
+                    "Explorar a cripta",
+                    "Eliminar o guardião"
+                ],
+                "inimigos": [
+                    {
+                        "id": "ghoul"
+                    },
+                    {
+                        "id": "esqueleto"
+                    },
+                    {
+                        "id": "vampiro_spawn"
+                    }
+                ],
+                "recompensas": {
+                    "xp": 60,
+                    "ouro": 30
+                },
+                "dificuldade": "dificil",
+                "dialogoVitoria": "A cria de vampiro foi destruída, mas sussurra sobre seu mestre. Algo antigo e maligno aguarda na câmara central.",
+                "dialogoDerrota": "A escuridão aqui é forte demais. Voltem quando estiverem mais preparados."
+            },
+            {
+                "id": 5,
+                "nome": "O Despertar do Ancião",
+                "descricao": "Confrontar o ser antigo que ameaça o bairro.",
+                "briefing": "Esta é a batalha final do capítulo. O ser que está por trás de tudo aguarda na câmara do ritual. Preparem suas melhores cartas. Que os dados estejam a seu favor.",
+                "objetivos": [
+                    "Derrotar o Lobisomem Ancião",
+                    "Selar a fonte do mal"
+                ],
+                "inimigos": [
+                    {
+                        "id": "lobisomem"
+                    }
+                ],
+                "boss": true,
+                "recompensas": {
+                    "xp": 150,
+                    "ouro": 100,
+                    "carta": "lunar_strike"
+                },
+                "dificuldade": "boss",
+                "dialogoVitoria": "VITÓRIA! O Lobisomem Ancião foi derrotado! O bairro está salvo... por enquanto. Mas há rumores de ameaças ainda maiores no horizonte. Descansem, heróis. O Capítulo 2 aguarda.",
+                "dialogoDerrota": "O Ancião é poderoso demais! Vocês precisam se fortalecer antes de enfrentá-lo novamente."
+            }
+        ]
+    }
+}
