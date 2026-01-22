@@ -272,10 +272,22 @@ export class ARSceneManager {
         this.raycaster.ray.origin.setFromMatrixPosition(this.controller.matrixWorld);
         this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-        const meshes = Array.from(this.enemyMeshes.values())
-            .filter(m => m.visible && m.userData.selecionavel);
+        // Configurar câmera para raycasting de sprites
+        this.raycaster.camera = this.camera;
 
-        const intersects = this.raycaster.intersectObjects(meshes, true);
+        // Coletar apenas meshes selecionáveis (excluindo barras de vida)
+        const selectableMeshes = [];
+        this.enemyMeshes.forEach((mesh) => {
+            if (mesh.visible && mesh.userData.selecionavel) {
+                mesh.traverse((child) => {
+                    if (child.isMesh && !child.parent?.name?.includes('healthBar') && child.parent?.name !== 'healthBar') {
+                        selectableMeshes.push(child);
+                    }
+                });
+            }
+        });
+
+        const intersects = this.raycaster.intersectObjects(selectableMeshes, false);
 
         if (intersects.length > 0) {
             let target = intersects[0].object;
