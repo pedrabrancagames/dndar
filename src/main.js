@@ -250,9 +250,15 @@ class Game {
                         this.sceneManager?.atualizarBarraVida(data.alvoData.instanceId, data.alvoData.pvPercent);
                     }
 
+                    console.log('[Game] Resultado dano:', resultado);
+                    console.log('[Game] alvoData:', data.alvoData);
+
                     if (resultado.derrotado) {
                         this.hud.adicionarLog(`${data.alvo} foi derrotado!`, 'buff');
-                        this.sceneManager?.removerInimigo(data.alvoData?.instanceId);
+                        console.log('[Game] Removendo inimigo:', data.alvoData?.instanceId);
+                        if (data.alvoData?.instanceId) {
+                            this.sceneManager?.removerInimigo(data.alvoData.instanceId);
+                        }
                     }
                 }
 
