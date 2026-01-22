@@ -916,32 +916,23 @@ class Game {
         // Aguardar um frame para garantir que as dimensões do container sejam calculadas
         await new Promise(resolve => requestAnimationFrame(resolve));
 
-        // Verificar se já existe um sceneManager ativo - se sim, reutilizar
-        if (this.sceneManager && !this.isARMode) {
-            // Já temos um sceneManager normal, só iniciar combate
-            await this.gameMaster.apresentarBriefing({
-                titulo: missao.nome,
-                texto: missao.briefing
-            });
-
-            const configInimigos = this.campaignManager.getInimigosParaCombate();
-            this.combatManager.iniciarCombate(configInimigos);
-            return;
-        }
-
         // Limpar managers antigos se existirem
         if (this.arSceneManager) {
+            console.log('[Game] Limpando arSceneManager antigo');
             this.arSceneManager.dispose();
             this.arSceneManager = null;
         }
         if (this.sceneManager) {
+            console.log('[Game] Limpando sceneManager antigo');
             this.sceneManager.dispose();
             this.sceneManager = null;
         }
 
         // Tentar inicializar AR
+        console.log('[Game] Tentando inicializar AR...');
         const arManager = new ARSceneManager('scene-container');
         const arSupported = await arManager.init();
+        console.log('[Game] AR suportado:', arSupported);
 
         if (!arSupported) {
             // Limpar ARSceneManager antes de usar fallback
