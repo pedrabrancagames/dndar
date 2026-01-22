@@ -223,6 +223,16 @@ export class GameMaster {
      * Apresenta briefing de missão
      */
     async apresentarBriefing(missao) {
+        // Se tiver um texto personalizado da missão, usar ele
+        if (missao.texto) {
+            await this.mostrarDialogo(missao.texto, {
+                tipo: 'briefing',
+                autoContinuar: true,
+                duracao: 5000
+            });
+            return;
+        }
+
         const briefings = {
             1: {
                 1: "Se você está ouvindo isso, significa que algo respondeu ao seu chamado. O bairro mudou. Coisas que dormiam sob o concreto agora se movem. Este é apenas o começo.",
@@ -260,7 +270,12 @@ export class GameMaster {
 
         const texto = briefings[capitulo]?.[missaoNum] || "Preparem-se. O desconhecido aguarda.";
 
-        await this.mostrarDialogo(texto, { tipo: 'briefing' });
+        // Em modo AR, usar autoContinuar para não bloquear
+        await this.mostrarDialogo(texto, {
+            tipo: 'briefing',
+            autoContinuar: true,
+            duracao: 4000
+        });
     }
 
     /**
