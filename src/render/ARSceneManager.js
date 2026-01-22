@@ -544,7 +544,11 @@ export class ARSceneManager {
     }
 
     limparInimigos() {
+        // Disparar efeitos de morte para todos os inimigos restantes
         this.enemyMeshes.forEach((mesh) => {
+            if (this.particleSystem && mesh.visible) {
+                this.particleSystem.efeitoMorte(mesh.position);
+            }
             this.scene.remove(mesh);
         });
         this.enemyMeshes.clear();
