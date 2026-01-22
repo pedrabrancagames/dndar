@@ -971,7 +971,9 @@ class Game {
         });
 
         // Tentar iniciar sessão AR
+        console.log('[Game] Iniciando sessão AR...');
         const arStarted = await arManager.startAR();
+        console.log('[Game] AR iniciado:', arStarted);
 
         if (!arStarted) {
             // Limpar ARSceneManager antes de usar fallback
@@ -983,17 +985,20 @@ class Game {
         }
 
         // Sucesso - usar modo AR
+        console.log('[Game] Configurando AR como sceneManager');
         this.arSceneManager = arManager;
         this.sceneManager = arManager;
         this.isARMode = true;
 
         // Mostrar briefing
+        console.log('[Game] Mostrando briefing...');
         await this.gameMaster.apresentarBriefing({
             titulo: missao.nome,
             texto: missao.briefing
         });
 
         // Iniciar combate com os inimigos da missão
+        console.log('[Game] Iniciando combate da missão');
         const configInimigos = this.campaignManager.getInimigosParaCombate();
         this.combatManager.iniciarCombate(configInimigos);
 
