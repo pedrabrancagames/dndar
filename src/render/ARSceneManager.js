@@ -286,7 +286,12 @@ export class ARSceneManager {
     }
 
     checkEnemySelectionAR() {
-        if (!this.controller) return;
+        console.log('[ARSceneManager] Verificando seleção de inimigo...');
+
+        if (!this.controller) {
+            console.warn('[ARSceneManager] Controller não disponível');
+            return;
+        }
 
         const tempMatrix = new THREE.Matrix4();
         tempMatrix.identity().extractRotation(this.controller.matrixWorld);
@@ -297,7 +302,11 @@ export class ARSceneManager {
         const meshes = Array.from(this.enemyMeshes.values())
             .filter(m => m.visible && m.userData.selecionavel);
 
+        console.log('[ARSceneManager] Meshes selecionáveis:', meshes.length);
+
         const intersects = this.raycaster.intersectObjects(meshes, true);
+
+        console.log('[ARSceneManager] Intersecções encontradas:', intersects.length);
 
         if (intersects.length > 0) {
             let target = intersects[0].object;
@@ -308,28 +317,32 @@ export class ARSceneManager {
             if (target && target.userData.instanceId) {
                 console.log('[ARSceneManager] Inimigo selecionado:', target.userData.instanceId);
                 this.emit('inimigoClicado', { instanceId: target.userData.instanceId });
+            } else {
+                console.warn('[ARSceneManager] Target encontrado mas sem instanceId');
             }
+        } else {
+            console.log('[ARSceneManager] Nenhum inimigo na mira');
         }
     }
 
     async adicionarInimigos(inimigos) {
         console.log('[ARSceneManager] Adicionando', inimigos.length, 'inimigos');
-        
+
         const cores = [0xff4444, 0x44ff44, 0x4444ff, 0xffff44, 0xff44ff, 0x44ffff];
-        
+
         for (let index = 0; index < inimigos.length; index++) {
             const inimigo = inimigos[index];
             const cor = cores[index % cores.length];
-            
+
             // Tentar carregar modelo GLB primeiro
             try {
                 const modelPath = `/public/assets/models/${inimigo.modelo}`;
                 console.log('[ARSceneManager] Carregando modelo:', modelPath);
-                
+
                 const model = await this.loadModel(modelPath);
-                
-                // Escala para AR (menor que no modo normal)
-                model.scale.setScalar((inimigo.escala || 1) * 0.25);
+
+                // Escala para AR (5x maior)
+                model.scale.setScalar((inimigo.escala || 1) * 1.25);
                 model.visible = false;
                 model.userData = {
                     instanceId: inimigo.instanceId,
@@ -338,29 +351,29 @@ export class ARSceneManager {
                     selecionavel: true,
                     baseY: 0
                 };
-                
+
                 this.scene.add(model);
                 this.enemyMeshes.set(inimigo.instanceId, model);
-                
+
                 console.log('[ARSceneManager] Modelo GLB carregado:', inimigo.nome);
             } catch (error) {
                 console.warn('[ARSceneManager] Fallback para placeholder:', inimigo.nome, error.message);
-                
+
                 // Fallback: usar placeholder colorido
                 const placeholder = this.criarPlaceholderVisivel(inimigo, cor);
                 this.scene.add(placeholder);
                 this.enemyMeshes.set(inimigo.instanceId, placeholder);
             }
         }
-        
+
         console.log('[ARSceneManager] Total inimigos:', this.enemyMeshes.size);
     }
-    
+
     async loadModel(modelPath) {
         if (this.modelCache.has(modelPath)) {
             return this.modelCache.get(modelPath).clone();
         }
-        
+
         return new Promise((resolve, reject) => {
             this.gltfLoader.load(
                 modelPath,
