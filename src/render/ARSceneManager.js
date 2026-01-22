@@ -54,13 +54,10 @@ export class ARSceneManager {
         if ('xr' in navigator) {
             try {
                 this.isARSupported = await navigator.xr.isSessionSupported('immersive-ar');
-                console.log('[ARSceneManager] WebXR AR suportado:', this.isARSupported);
             } catch (e) {
-                console.warn('[ARSceneManager] Erro ao verificar suporte AR:', e);
                 this.isARSupported = false;
             }
         } else {
-            console.warn('[ARSceneManager] WebXR não disponível');
             this.isARSupported = false;
         }
         return this.isARSupported;
@@ -85,15 +82,12 @@ export class ARSceneManager {
         this.setupLoaders();
         this.setupARLighting();
         this.createReticle();
-        this.setupEventListeners();
 
-        console.log('[ARSceneManager] Inicializado');
         return this.isARSupported;
     }
 
     setupLoaders() {
         this.dracoLoader = new DRACOLoader();
-        // Usar decoder DRACO do CDN (mais confiável)
         this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         this.gltfLoader = new GLTFLoader();
         this.gltfLoader.setDRACOLoader(this.dracoLoader);
@@ -119,16 +113,6 @@ export class ARSceneManager {
         this.reticle.matrixAutoUpdate = false;
         this.reticle.visible = false;
         this.scene.add(this.reticle);
-    }
-
-    setupEventListeners() {
-        window.addEventListener('resize', () => this.onResize());
-    }
-
-    onResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     async startAR() {
@@ -162,11 +146,8 @@ export class ARSceneManager {
             this.renderer.setAnimationLoop((time, frame) => this.renderAR(time, frame));
 
             this.emit('arStarted');
-            console.log('[ARSceneManager] Sessão AR iniciada');
-
             return true;
         } catch (e) {
-            console.error('[ARSceneManager] Erro ao iniciar AR:', e);
             this.emit('arError', { message: e.message });
             return false;
         }
@@ -184,9 +165,7 @@ export class ARSceneManager {
         this.hitTestSource = null;
         this.hitTestSourceRequested = false;
         this.renderer.setAnimationLoop(null);
-
         this.emit('arEnded');
-        console.log('[ARSceneManager] Sessão AR encerrada');
     }
 
     renderAR(time, frame) {
@@ -228,19 +207,15 @@ export class ARSceneManager {
     updateAnimations(time) {
         this.enemyMeshes.forEach((mesh) => {
             if (mesh.visible && mesh.userData.baseY !== undefined) {
+                // Flutuação suave
                 mesh.rotation.y = Math.sin(time * 0.001) * 0.2;
-                mesh.position.y = mesh.userData.baseY + Math.sin(time * 0.003) * 0.03;
+                mesh.position.y = mesh.userData.baseY + Math.sin(time * 0.003) * 0.05;
             }
         });
     }
 
     onARSelect() {
         if (!this.isARActive) return;
-
-        console.log('[ARSceneManager] Toque detectado em AR');
-        console.log('[ARSceneManager] enemiesPlaced:', this.enemiesPlaced);
-        console.log('[ARSceneManager] reticle.visible:', this.reticle.visible);
-        console.log('[ARSceneManager] enemyMeshes.size:', this.enemyMeshes.size);
 
         if (!this.enemiesPlaced && this.reticle.visible) {
             this.placeEnemiesAtReticle();
@@ -251,47 +226,33 @@ export class ARSceneManager {
     }
 
     placeEnemiesAtReticle() {
-        console.log('[ARSceneManager] Posicionando inimigos...');
-
-        if (this.enemyMeshes.size === 0) {
-            console.warn('[ARSceneManager] Nenhum inimigo para posicionar!');
-            return;
-        }
+        if (this.enemyMeshes.size === 0) return;
 
         const position = new THREE.Vector3();
         position.setFromMatrixPosition(this.reticle.matrix);
 
-        console.log('[ARSceneManager] Posição:', position.x.toFixed(2), position.y.toFixed(2), position.z.toFixed(2));
-
         const meshesArray = Array.from(this.enemyMeshes.values());
+        const spacing = 0.8; // Espaçamento maior entre inimigos
 
         meshesArray.forEach((mesh, index) => {
-            const offset = (index - (meshesArray.length - 1) / 2) * 0.4;
+            const offset = (index - (meshesArray.length - 1) / 2) * spacing;
             mesh.position.set(
                 position.x + offset,
-                position.y + 0.15,
+                position.y + 0.1,
                 position.z
             );
-            mesh.userData.baseY = position.y + 0.15;
+            mesh.userData.baseY = position.y + 0.1;
             mesh.visible = true;
-
-            console.log('[ARSceneManager] Inimigo', index, 'visível:', mesh.visible);
         });
 
         this.reticle.visible = false;
         this.enemiesPlaced = true;
 
         this.emit('enemiesPlaced', { position });
-        console.log('[ARSceneManager] Inimigos posicionados com sucesso!');
     }
 
     checkEnemySelectionAR() {
-        console.log('[ARSceneManager] Verificando seleção de inimigo...');
-
-        if (!this.controller) {
-            console.warn('[ARSceneManager] Controller não disponível');
-            return;
-        }
+        if (!this.controller) return;
 
         const tempMatrix = new THREE.Matrix4();
         tempMatrix.identity().extractRotation(this.controller.matrixWorld);
@@ -302,11 +263,7 @@ export class ARSceneManager {
         const meshes = Array.from(this.enemyMeshes.values())
             .filter(m => m.visible && m.userData.selecionavel);
 
-        console.log('[ARSceneManager] Meshes selecionáveis:', meshes.length);
-
         const intersects = this.raycaster.intersectObjects(meshes, true);
-
-        console.log('[ARSceneManager] Intersecções encontradas:', intersects.length);
 
         if (intersects.length > 0) {
             let target = intersects[0].object;
@@ -315,34 +272,24 @@ export class ARSceneManager {
             }
 
             if (target && target.userData.instanceId) {
-                console.log('[ARSceneManager] Inimigo selecionado:', target.userData.instanceId);
                 this.emit('inimigoClicado', { instanceId: target.userData.instanceId });
-            } else {
-                console.warn('[ARSceneManager] Target encontrado mas sem instanceId');
             }
-        } else {
-            console.log('[ARSceneManager] Nenhum inimigo na mira');
         }
     }
 
     async adicionarInimigos(inimigos) {
-        console.log('[ARSceneManager] Adicionando', inimigos.length, 'inimigos');
-
         const cores = [0xff4444, 0x44ff44, 0x4444ff, 0xffff44, 0xff44ff, 0x44ffff];
 
         for (let index = 0; index < inimigos.length; index++) {
             const inimigo = inimigos[index];
             const cor = cores[index % cores.length];
 
-            // Tentar carregar modelo GLB primeiro
             try {
                 const modelPath = `/public/assets/models/${inimigo.modelo}`;
-                console.log('[ARSceneManager] Carregando modelo:', modelPath);
-
                 const model = await this.loadModel(modelPath);
 
-                // Escala para AR (tamanho grande)
-                model.scale.setScalar((inimigo.escala || 1) * 4.0);
+                // Escala 3.0 para AR
+                model.scale.setScalar((inimigo.escala || 1) * 3.0);
                 model.visible = false;
                 model.userData = {
                     instanceId: inimigo.instanceId,
@@ -354,19 +301,13 @@ export class ARSceneManager {
 
                 this.scene.add(model);
                 this.enemyMeshes.set(inimigo.instanceId, model);
-
-                console.log('[ARSceneManager] Modelo GLB carregado:', inimigo.nome);
             } catch (error) {
-                console.warn('[ARSceneManager] Fallback para placeholder:', inimigo.nome, error.message);
-
                 // Fallback: usar placeholder colorido
                 const placeholder = this.criarPlaceholderVisivel(inimigo, cor);
                 this.scene.add(placeholder);
                 this.enemyMeshes.set(inimigo.instanceId, placeholder);
             }
         }
-
-        console.log('[ARSceneManager] Total inimigos:', this.enemyMeshes.size);
     }
 
     async loadModel(modelPath) {
@@ -388,12 +329,8 @@ export class ARSceneManager {
                     this.modelCache.set(modelPath, model.clone());
                     resolve(model);
                 },
-                (progress) => {
-                    // Progress callback
-                },
-                (error) => {
-                    reject(error);
-                }
+                undefined,
+                (error) => reject(error)
             );
         });
     }
@@ -401,39 +338,38 @@ export class ARSceneManager {
     criarPlaceholderVisivel(inimigo, cor) {
         const group = new THREE.Group();
 
-        // Corpo
-        const bodyGeometry = new THREE.CapsuleGeometry(0.08, 0.15, 4, 8);
+        const bodyGeometry = new THREE.CapsuleGeometry(0.15, 0.3, 4, 8);
         const bodyMaterial = new THREE.MeshStandardMaterial({
             color: cor,
             metalness: 0.2,
             roughness: 0.8
         });
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 0.12;
+        body.position.y = 0.25;
         group.add(body);
 
         // Olhos
-        const eyeGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+        const eyeGeometry = new THREE.SphereGeometry(0.04, 8, 8);
         const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
         const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        leftEye.position.set(-0.03, 0.18, 0.06);
+        leftEye.position.set(-0.05, 0.35, 0.12);
         group.add(leftEye);
 
         const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        rightEye.position.set(0.03, 0.18, 0.06);
+        rightEye.position.set(0.05, 0.35, 0.12);
         group.add(rightEye);
 
         // Pupilas
-        const pupilGeometry = new THREE.SphereGeometry(0.01, 8, 8);
+        const pupilGeometry = new THREE.SphereGeometry(0.02, 8, 8);
         const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
         const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-        leftPupil.position.set(-0.03, 0.18, 0.075);
+        leftPupil.position.set(-0.05, 0.35, 0.15);
         group.add(leftPupil);
 
         const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-        rightPupil.position.set(0.03, 0.18, 0.075);
+        rightPupil.position.set(0.05, 0.35, 0.15);
         group.add(rightPupil);
 
         group.visible = false;
@@ -478,7 +414,7 @@ export class ARSceneManager {
     }
 
     atualizarBarraVida(instanceId, pvPercent) {
-        // Placeholder não tem barra de vida visual
+        // Implementação futura para barra de vida sobre o inimigo
     }
 
     mostrarDanoInimigo(instanceId, dano) {
@@ -488,21 +424,58 @@ export class ARSceneManager {
         // Flash vermelho
         mesh.traverse((child) => {
             if (child.material) {
-                const original = child.material.color.clone();
-                child.material.color.set(0xff0000);
-                setTimeout(() => {
-                    child.material.color.copy(original);
-                }, 200);
+                const original = child.material.color?.clone();
+                if (original) {
+                    child.material.color.set(0xff0000);
+                    setTimeout(() => {
+                        child.material.color.copy(original);
+                    }, 200);
+                }
             }
         });
     }
 
+    /**
+     * Remove inimigo com animação de morte
+     */
     removerInimigo(instanceId) {
         const mesh = this.enemyMeshes.get(instanceId);
         if (!mesh) return;
 
-        this.scene.remove(mesh);
-        this.enemyMeshes.delete(instanceId);
+        // Animação de morte: shrink + fade
+        const duration = 500;
+        const startTime = performance.now();
+        const originalScale = mesh.scale.clone();
+
+        const animate = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Shrink
+            const scale = 1 - progress;
+            mesh.scale.copy(originalScale).multiplyScalar(scale);
+
+            // Fade
+            mesh.traverse((child) => {
+                if (child.material) {
+                    child.material.transparent = true;
+                    child.material.opacity = 1 - progress;
+                }
+            });
+
+            // Subir levemente
+            mesh.position.y += 0.002;
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Remover após animação
+                this.scene.remove(mesh);
+                this.enemyMeshes.delete(instanceId);
+            }
+        };
+
+        animate();
     }
 
     limparInimigos() {

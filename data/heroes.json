@@ -9,8 +9,8 @@
       "stats": {
         "pvMax": 24,
         "pv": 24,
-        "paMax": 2,
-        "pa": 2,
+        "paMax": 4,
+        "pa": 4,
         "defesa": 3,
         "ataque": 2
       },
@@ -25,8 +25,8 @@
       "stats": {
         "pvMax": 14,
         "pv": 14,
-        "paMax": 3,
-        "pa": 3,
+        "paMax": 5,
+        "pa": 5,
         "defesa": 1,
         "ataque": 0
       },
@@ -41,8 +41,8 @@
       "stats": {
         "pvMax": 16,
         "pv": 16,
-        "paMax": 3,
-        "pa": 3,
+        "paMax": 5,
+        "pa": 5,
         "defesa": 2,
         "ataque": 1
       },
@@ -57,8 +57,8 @@
       "stats": {
         "pvMax": 18,
         "pv": 18,
-        "paMax": 2,
-        "pa": 2,
+        "paMax": 4,
+        "pa": 4,
         "defesa": 2,
         "ataque": 0
       },
