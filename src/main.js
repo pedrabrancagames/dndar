@@ -442,12 +442,19 @@ class Game {
 
             // Callbacks do AR
             this.arSceneManager.on('inimigoClicado', ({ instanceId }) => {
+                console.log('[Game AR] Inimigo clicado:', instanceId);
+                console.log('[Game AR] modoSelecaoAlvo:', this.combatManager.modoSelecaoAlvo);
+                console.log('[Game AR] cartaSelecionada:', this.combatManager.cartaSelecionada?.id);
+
                 if (this.combatManager.modoSelecaoAlvo) {
                     const resultado = this.combatManager.selecionarAlvo(instanceId);
+                    console.log('[Game AR] Resultado seleção:', resultado);
                     if (resultado.sucesso) {
                         this.hud.esconderModoSelecao();
                         this.arSceneManager.limparDestaques();
                     }
+                } else {
+                    console.warn('[Game AR] modoSelecaoAlvo está false - seleção ignorada');
                 }
             });
 

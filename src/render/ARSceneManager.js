@@ -341,8 +341,8 @@ export class ARSceneManager {
 
                 const model = await this.loadModel(modelPath);
 
-                // Escala para AR (5x maior)
-                model.scale.setScalar((inimigo.escala || 1) * 1.25);
+                // Escala para AR (tamanho grande)
+                model.scale.setScalar((inimigo.escala || 1) * 4.0);
                 model.visible = false;
                 model.userData = {
                     instanceId: inimigo.instanceId,
