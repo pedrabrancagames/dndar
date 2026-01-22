@@ -323,6 +323,11 @@ class Game {
             if (data.resultado === 'vitoria') {
                 this.hud.adicionarLog('=== VITÓRIA ===', 'buff');
                 this.hud.adicionarLog(`XP ganho: ${data.recompensas?.xp || 0}`, 'buff');
+
+                // Limpar todos os inimigos restantes imediatamente
+                console.log('[Game] Combate finalizado - limpando inimigos');
+                this.sceneManager?.limparInimigos();
+
                 await this.gameMaster.anunciarVitoria();
             } else {
                 this.hud.adicionarLog('=== DERROTA ===', 'damage');
@@ -331,7 +336,6 @@ class Game {
 
             // Voltar para home após delay
             setTimeout(() => {
-                this.sceneManager?.limparInimigos();
                 this.irParaTela('home');
             }, 3000);
         });
