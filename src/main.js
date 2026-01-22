@@ -137,8 +137,8 @@ class Game {
      * Configura event listeners gerais
      */
     setupEventListeners() {
-        // Menu principal
-        this.elementos.btnCombat?.addEventListener('click', () => this.iniciarCombateTeste());
+        // Menu principal - Combate será configurado em setupMissionCallbacks
+        // NÃO adicionar listener para btnCombat aqui para evitar duplicação
         this.elementos.btnGameMaster?.addEventListener('click', () => this.mostrarBriefing());
         this.elementos.btnMap?.addEventListener('click', () => this.mostrarMensagem('Mapa em desenvolvimento...'));
         this.elementos.btnProfile?.addEventListener('click', () => this.mostrarMensagem('Perfil em desenvolvimento...'));
@@ -148,24 +148,24 @@ class Game {
         // Botão AR
         this.elementos.btnARCombat?.addEventListener('click', () => this.iniciarCombateAR());
 
-        // Configurações
+        // Configurações do modal rápido (GameMaster)
         this.elementos.settingVoice?.addEventListener('change', (e) => {
             this.gameMaster.setVoiceEnabled(e.target.checked);
-            this.salvarConfiguracoes();
+            this.salvarConfiguracoesGameMaster();
         });
 
         this.elementos.settingSpeechRate?.addEventListener('input', (e) => {
             const rate = parseFloat(e.target.value);
             this.gameMaster.setSpeechRate(rate);
             this.elementos.speechRateValue.textContent = `${rate}x`;
-            this.salvarConfiguracoes();
+            this.salvarConfiguracoesGameMaster();
         });
 
         this.elementos.settingVolume?.addEventListener('input', (e) => {
             const volume = parseFloat(e.target.value);
             this.gameMaster.setVolume(volume);
             this.elementos.volumeValue.textContent = `${Math.round(volume * 100)}%`;
-            this.salvarConfiguracoes();
+            this.salvarConfiguracoesGameMaster();
         });
     }
 
@@ -316,7 +316,7 @@ class Game {
                     this.audioManager.tocarAcao('debuff');
                     // Efeito de debuff no inimigo
                     if (data.alvoData?.instanceId) {
-                        this.sceneManager?.mostrarDebuff?.(data.alvoData.instanceId);
+                        this.sceneManager?.mostrarDebuff(data.alvoData.instanceId);
                     }
                 }
             }
@@ -662,9 +662,9 @@ class Game {
     }
 
     /**
-     * Salva configurações no localStorage
+     * Salva configurações do GameMaster no localStorage
      */
-    salvarConfiguracoes() {
+    salvarConfiguracoesGameMaster() {
         const config = this.gameMaster.getConfig();
         localStorage.setItem('gameConfig', JSON.stringify(config));
     }
@@ -739,7 +739,7 @@ class Game {
 
         // Botão salvar
         document.getElementById('save-settings-btn')?.addEventListener('click', () => {
-            this.salvarConfiguracoes();
+            this.salvarConfiguracoesAudio();
             this.irParaTela('home');
         });
 
@@ -782,23 +782,34 @@ class Game {
     }
 
     /**
-     * Salva configurações
+     * Salva configurações de áudio da tela de configurações
      */
-    salvarConfiguracoes() {
+    salvarConfiguracoesAudio() {
+        // Validar que settings existe
+        if (!this.settings) {
+            this.settings = this.saveManager.getDefaultSettings();
+        }
+        if (!this.settings.audio) {
+            this.settings.audio = { musicaVolume: 0.3, sfxVolume: 0.7, vozVolume: 0.8, mudo: false };
+        }
+
         this.settings.audio.musicaVolume = parseInt(document.getElementById('music-volume')?.value || 30) / 100;
         this.settings.audio.sfxVolume = parseInt(document.getElementById('sfx-volume')?.value || 70) / 100;
         this.settings.audio.vozVolume = parseInt(document.getElementById('voice-volume')?.value || 80) / 100;
         this.settings.audio.mudo = document.getElementById('mute-toggle')?.checked || false;
 
         this.saveManager.salvarConfiguracoes(this.settings);
+
+        // Também salvar configurações do GameMaster
+        this.salvarConfiguracoesGameMaster();
     }
 
     /**
      * Configura callbacks da tela de missões
      */
     setupMissionCallbacks() {
-        // Botão combate agora leva para seleção de missões
-        this.elementos.btnCombat?.removeEventListener('click', () => { });
+        // Botão combate leva para seleção de missões
+        // Este é o único listener para btnCombat (removido de setupEventListeners)
         this.elementos.btnCombat?.addEventListener('click', () => {
             this.irParaTela('mission');
             this.renderizarListaMissoes();

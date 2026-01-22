@@ -480,23 +480,46 @@ export class SceneManager {
     /**
      * Mostra efeito visual de dano em um inimigo
      */
-    mostrarDanoInimigo(instanceId, dano) {
+    mostrarDanoInimigo(instanceId, dano, tipoEfeito = 'dano') {
         const mesh = this.enemyMeshes.get(instanceId);
         if (!mesh) return;
 
-        // Flash vermelho
-        mesh.traverse((child) => {
-            if (child.material) {
-                const originalColor = child.material.color.clone();
-                child.material.color.set(0xff0000);
+        // Efeito específico baseado no tipo
+        if (tipoEfeito === 'fogo') {
+            this.mostrarFogo(instanceId);
+        } else if (tipoEfeito === 'gelo') {
+            this.mostrarGelo(instanceId);
+        } else if (tipoEfeito === 'raio') {
+            // Flash azul elétrico
+            mesh.traverse((child) => {
+                if (child.material) {
+                    const originalColor = child.material.color.clone();
+                    child.material.color.set(0x00d4ff);
+                    child.material.emissive = new THREE.Color(0x00d4ff);
+                    child.material.emissiveIntensity = 0.8;
 
-                setTimeout(() => {
-                    child.material.color.copy(originalColor);
-                }, 200);
-            }
-        });
+                    setTimeout(() => {
+                        child.material.color.copy(originalColor);
+                        child.material.emissive = new THREE.Color(0x000000);
+                        child.material.emissiveIntensity = 0;
+                    }, 150);
+                }
+            });
+        } else {
+            // Flash vermelho padrão
+            mesh.traverse((child) => {
+                if (child.material) {
+                    const originalColor = child.material.color.clone();
+                    child.material.color.set(0xff0000);
 
-        // Shake
+                    setTimeout(() => {
+                        child.material.color.copy(originalColor);
+                    }, 200);
+                }
+            });
+        }
+
+        // Shake sempre
         const originalPos = mesh.position.clone();
         const shake = () => {
             mesh.position.x = originalPos.x + (Math.random() - 0.5) * 0.1;
@@ -508,6 +531,127 @@ export class SceneManager {
             clearInterval(shakeInterval);
             mesh.position.copy(originalPos);
         }, 300);
+    }
+
+    /**
+     * Mostra efeito de cura (para uso futuro com heróis)
+     */
+    mostrarCura(position) {
+        // Flash verde na posição
+        const light = new THREE.PointLight(0x27ae60, 2, 5);
+        light.position.copy(position);
+        this.scene.add(light);
+
+        // Fade out
+        const fadeOut = () => {
+            light.intensity -= 0.1;
+            if (light.intensity > 0) {
+                requestAnimationFrame(fadeOut);
+            } else {
+                this.scene.remove(light);
+            }
+        };
+        setTimeout(fadeOut, 100);
+    }
+
+    /**
+     * Mostra efeito de buff
+     */
+    mostrarBuff(position) {
+        // Flash dourado na posição
+        const light = new THREE.PointLight(0xf1c40f, 2, 5);
+        light.position.copy(position);
+        this.scene.add(light);
+
+        // Fade out
+        const fadeOut = () => {
+            light.intensity -= 0.1;
+            if (light.intensity > 0) {
+                requestAnimationFrame(fadeOut);
+            } else {
+                this.scene.remove(light);
+            }
+        };
+        setTimeout(fadeOut, 100);
+    }
+
+    /**
+     * Mostra efeito de debuff em um inimigo
+     */
+    mostrarDebuff(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh) return;
+
+        // Flash roxo
+        mesh.traverse((child) => {
+            if (child.material) {
+                const originalColor = child.material.color.clone();
+                child.material.color.set(0x9b59b6);
+
+                setTimeout(() => {
+                    child.material.color.copy(originalColor);
+                }, 300);
+            }
+        });
+    }
+
+    /**
+     * Mostra efeito de fogo em um inimigo
+     */
+    mostrarFogo(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh) return;
+
+        // Flash laranja/vermelho
+        const originalPositionY = mesh.position.y;
+        let flashes = 0;
+
+        const flashFire = () => {
+            mesh.traverse((child) => {
+                if (child.material) {
+                    child.material.emissive = new THREE.Color(flashes % 2 === 0 ? 0xff6b35 : 0xe74c3c);
+                    child.material.emissiveIntensity = 0.5;
+                }
+            });
+
+            flashes++;
+            if (flashes < 6) {
+                setTimeout(flashFire, 100);
+            } else {
+                mesh.traverse((child) => {
+                    if (child.material) {
+                        child.material.emissive = new THREE.Color(0x000000);
+                        child.material.emissiveIntensity = 0;
+                    }
+                });
+            }
+        };
+
+        flashFire();
+    }
+
+    /**
+     * Mostra efeito de gelo em um inimigo
+     */
+    mostrarGelo(instanceId) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh) return;
+
+        // Flash azul claro e "congelamento"
+        mesh.traverse((child) => {
+            if (child.material) {
+                const originalColor = child.material.color.clone();
+                child.material.color.set(0x74b9ff);
+                child.material.emissive = new THREE.Color(0x0984e3);
+                child.material.emissiveIntensity = 0.3;
+
+                setTimeout(() => {
+                    child.material.color.copy(originalColor);
+                    child.material.emissive = new THREE.Color(0x000000);
+                    child.material.emissiveIntensity = 0;
+                }, 500);
+            }
+        });
     }
 
     /**
