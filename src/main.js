@@ -142,20 +142,31 @@ class Game {
      */
     setupHUDCallbacks() {
         this.hud.on('cartaSelecionada', ({ cardId }) => {
+            console.log('[Game] Carta clicada:', cardId);
+            console.log('[Game] isARMode:', this.isARMode);
+            console.log('[Game] sceneManager:', this.sceneManager ? 'OK' : 'null');
+
             const resultado = this.combatManager.selecionarCarta(cardId);
+            console.log('[Game] Resultado selecionarCarta:', resultado);
 
             if (resultado.modoSelecao) {
                 this.hud.mostrarModoSelecao();
+                console.log('[Game] modoSelecaoAlvo ativado:', this.combatManager.modoSelecaoAlvo);
 
                 // Destacar alvos válidos
                 const carta = this.combatManager.cartaSelecionada;
+                console.log('[Game] Carta selecionada:', carta?.id, 'Alvo:', carta?.alvo);
+
                 if (carta.alvo === 'inimigo') {
                     const alvos = resultado.alvos.map(a => a.instanceId);
+                    console.log('[Game] Destacando inimigos:', alvos);
                     this.sceneManager?.destacarAlvosInimigos(alvos);
                 } else if (carta.alvo === 'heroi' || carta.alvo === 'heroi_incapacitado') {
                     const alvos = resultado.alvos.map(a => a.id);
                     this.hud.destacarAlvosHerois(alvos);
                 }
+            } else {
+                console.warn('[Game] modoSelecao não ativado. Erro:', resultado.erro);
             }
         });
 
