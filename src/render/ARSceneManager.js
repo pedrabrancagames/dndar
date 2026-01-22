@@ -217,6 +217,11 @@ export class ARSceneManager {
                 // Flutuação suave
                 mesh.rotation.y = Math.sin(time * 0.001) * 0.2;
                 mesh.position.y = mesh.userData.baseY + Math.sin(time * 0.003) * 0.05;
+
+                // Fazer barra de vida olhar para a câmera
+                if (mesh.userData.healthBar) {
+                    mesh.userData.healthBar.lookAt(this.camera.position);
+                }
             }
         });
     }
@@ -303,18 +308,127 @@ export class ARSceneManager {
                     nome: inimigo.nome,
                     tipo: 'inimigo',
                     selecionavel: true,
-                    baseY: 0
+                    baseY: 0,
+                    pvMax: inimigo.pvMax || 10,
+                    pv: inimigo.pv || 10
                 };
+
+                // Criar barra de vida
+                const healthBar = this.criarBarraVida(inimigo.nome, inimigo.pv, inimigo.pvMax);
+                healthBar.position.y = 1.2; // Acima do modelo
+                model.add(healthBar);
+                model.userData.healthBar = healthBar;
 
                 this.scene.add(model);
                 this.enemyMeshes.set(inimigo.instanceId, model);
             } catch (error) {
                 // Fallback: usar placeholder colorido
                 const placeholder = this.criarPlaceholderVisivel(inimigo, cor);
+
+                // Adicionar barra de vida ao placeholder também
+                const healthBar = this.criarBarraVida(inimigo.nome, inimigo.pv || 10, inimigo.pvMax || 10);
+                healthBar.position.y = 0.6; // Acima do placeholder
+                placeholder.add(healthBar);
+                placeholder.userData.healthBar = healthBar;
+                placeholder.userData.pvMax = inimigo.pvMax || 10;
+                placeholder.userData.pv = inimigo.pv || 10;
+
                 this.scene.add(placeholder);
                 this.enemyMeshes.set(inimigo.instanceId, placeholder);
             }
         }
+    }
+
+    /**
+     * Cria barra de vida 3D
+     */
+    criarBarraVida(nome, pv, pvMax) {
+        const group = new THREE.Group();
+        group.name = 'healthBar';
+
+        // Fundo da barra (preto/cinza)
+        const bgGeometry = new THREE.PlaneGeometry(0.5, 0.08);
+        const bgMaterial = new THREE.MeshBasicMaterial({
+            color: 0x333333,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide
+        });
+        const bgBar = new THREE.Mesh(bgGeometry, bgMaterial);
+        bgBar.position.z = 0.001;
+        group.add(bgBar);
+
+        // Barra de HP (verde)
+        const hpPercent = Math.max(0, Math.min(1, pv / pvMax));
+        const hpGeometry = new THREE.PlaneGeometry(0.48 * hpPercent, 0.06);
+        const hpMaterial = new THREE.MeshBasicMaterial({
+            color: this.getHealthColor(hpPercent),
+            transparent: true,
+            opacity: 0.9,
+            side: THREE.DoubleSide
+        });
+        const hpBar = new THREE.Mesh(hpGeometry, hpMaterial);
+        hpBar.position.x = -0.24 * (1 - hpPercent); // Alinha à esquerda
+        hpBar.position.z = 0.002;
+        hpBar.name = 'hpFill';
+        group.add(hpBar);
+
+        // Borda da barra
+        const borderGeometry = new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.52, 0.1));
+        const borderMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+        const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+        group.add(border);
+
+        // Nome do inimigo (usando sprite de texto)
+        const nameSprite = this.criarTextoSprite(nome);
+        nameSprite.position.y = 0.12;
+        nameSprite.scale.set(0.5, 0.15, 1);
+        group.add(nameSprite);
+
+        // A barra deve sempre olhar para a câmera
+        group.userData.lookAtCamera = true;
+
+        return group;
+    }
+
+    /**
+     * Cria sprite de texto
+     */
+    criarTextoSprite(texto) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 64;
+
+        // Fundo semi-transparente
+        context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Texto
+        context.font = 'bold 28px Inter, Arial, sans-serif';
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(texto, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true
+        });
+
+        return new THREE.Sprite(spriteMaterial);
+    }
+
+    /**
+     * Retorna cor baseada no HP
+     */
+    getHealthColor(percent) {
+        if (percent > 0.6) return 0x44ff44; // Verde
+        if (percent > 0.3) return 0xffaa00; // Laranja
+        return 0xff4444; // Vermelho
     }
 
     async loadModel(modelPath) {
@@ -421,7 +535,23 @@ export class ARSceneManager {
     }
 
     atualizarBarraVida(instanceId, pvPercent) {
-        // Implementação futura para barra de vida sobre o inimigo
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh || !mesh.userData.healthBar) return;
+
+        const healthBar = mesh.userData.healthBar;
+        const hpPercent = Math.max(0, Math.min(1, pvPercent / 100));
+
+        // Encontrar a barra de HP
+        const hpFill = healthBar.children.find(c => c.name === 'hpFill');
+        if (hpFill) {
+            // Atualizar geometria
+            hpFill.geometry.dispose();
+            hpFill.geometry = new THREE.PlaneGeometry(0.48 * hpPercent, 0.06);
+            hpFill.position.x = -0.24 * (1 - hpPercent);
+
+            // Atualizar cor
+            hpFill.material.color.setHex(this.getHealthColor(hpPercent));
+        }
     }
 
     mostrarDanoInimigo(instanceId, dano, tipoEfeito = 'dano') {
