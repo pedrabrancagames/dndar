@@ -35,6 +35,9 @@ export class ARSceneManager {
         // Reticle para placement
         this.reticle = null;
         this.enemiesPlaced = false;
+
+        // Controller para seleção em AR
+        this.controller = null;
     }
 
     on(evento, callback) {
@@ -175,6 +178,11 @@ export class ARSceneManager {
 
             this.xrSession.addEventListener('end', () => this.onSessionEnd());
 
+            // Adicionar controller para seleção
+            this.controller = this.renderer.xr.getController(0);
+            this.controller.addEventListener('select', () => this.onARSelect());
+            this.scene.add(this.controller);
+
             this.isARActive = true;
             this.enemiesPlaced = false;
 
@@ -264,7 +272,25 @@ export class ARSceneManager {
     }
 
     /**
-     * Handler de seleção (toque/click)
+     * Handler de seleção AR (toque na tela)
+     */
+    onARSelect() {
+        if (!this.isARActive) return;
+
+        console.log('[ARSceneManager] Toque detectado em AR');
+
+        // Se os inimigos ainda não foram posicionados, posiciona-os
+        if (!this.enemiesPlaced && this.reticle.visible) {
+            this.placeEnemiesAtReticle();
+            return;
+        }
+
+        // Caso contrário, verifica seleção de inimigo
+        this.checkEnemySelectionAR();
+    }
+
+    /**
+     * Handler de seleção (toque/click) - fallback
      */
     onSelect(event) {
         if (!this.isARActive) return;
@@ -306,26 +332,45 @@ export class ARSceneManager {
     }
 
     /**
-     * Verifica se um inimigo foi selecionado
+     * Verifica seleção de inimigo em AR (usando controller)
+     */
+    checkEnemySelectionAR() {
+        if (!this.controller) return;
+
+        const tempMatrix = new THREE.Matrix4();
+        tempMatrix.identity().extractRotation(this.controller.matrixWorld);
+
+        this.raycaster.ray.origin.setFromMatrixPosition(this.controller.matrixWorld);
+        this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+        const meshes = Array.from(this.enemyMeshes.values())
+            .filter(m => m.visible && m.userData.selecionavel);
+
+        const intersects = this.raycaster.intersectObjects(meshes, true);
+
+        if (intersects.length > 0) {
+            let target = intersects[0].object;
+            while (target && !target.userData.instanceId) {
+                target = target.parent;
+            }
+
+            if (target && target.userData.instanceId) {
+                console.log('[ARSceneManager] Inimigo selecionado:', target.userData.instanceId);
+                this.emit('inimigoClicado', { instanceId: target.userData.instanceId });
+            }
+        }
+    }
+
+    /**
+     * Verifica se um inimigo foi selecionado (fallback)
      */
     checkEnemySelection(event) {
-        // Em AR, usamos a direção do gaze/controller
-        const controller = this.renderer.xr.getController(0);
+        // Fallback para click normal
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        if (controller) {
-            const tempMatrix = new THREE.Matrix4();
-            tempMatrix.identity().extractRotation(controller.matrixWorld);
-
-            this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-            this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-        } else {
-            // Fallback para click normal
-            const rect = this.renderer.domElement.getBoundingClientRect();
-            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-            this.raycaster.setFromCamera(new THREE.Vector2(x, y), this.camera);
-        }
+        this.raycaster.setFromCamera(new THREE.Vector2(x, y), this.camera);
 
         const meshes = Array.from(this.enemyMeshes.values())
             .filter(m => m.visible && m.userData.selecionavel);
