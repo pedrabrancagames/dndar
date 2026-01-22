@@ -916,6 +916,10 @@ class Game {
             const arSupported = await this.arSceneManager.init();
 
             if (!arSupported) {
+                // Limpar ARSceneManager antes de usar fallback
+                this.arSceneManager.dispose();
+                this.arSceneManager = null;
+
                 // Fallback para modo normal se AR não suportado
                 this.irParaTela('combat');
                 if (!this.sceneManager) {
@@ -978,8 +982,11 @@ class Game {
         const arStarted = await this.arSceneManager.startAR();
 
         if (!arStarted) {
-            // Fallback para modo normal
+            // Limpar ARSceneManager antes de usar fallback
             console.warn('[Game] AR não iniciou, usando modo normal');
+            this.arSceneManager.dispose();
+            this.arSceneManager = null;
+
             if (!this.sceneManager) {
                 this.sceneManager = new SceneManager('scene-container');
                 await this.sceneManager.init();

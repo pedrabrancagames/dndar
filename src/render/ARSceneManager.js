@@ -702,11 +702,27 @@ export class ARSceneManager {
         this.limparInimigos();
         this.modelCache.clear();
 
+        // Limpar callbacks
+        this.callbacks = {};
+
+        // Limpar scene
+        if (this.scene) {
+            while (this.scene.children.length > 0) {
+                this.scene.remove(this.scene.children[0]);
+            }
+        }
+
+        // Limpar renderer e remover canvas
         if (this.renderer) {
+            this.renderer.setAnimationLoop(null);
             this.renderer.dispose();
-            if (this.container.contains(this.renderer.domElement)) {
+            if (this.container && this.renderer.domElement && this.container.contains(this.renderer.domElement)) {
                 this.container.removeChild(this.renderer.domElement);
             }
         }
+
+        // Resetar flags
+        this.isARActive = false;
+        this.isARSupported = false;
     }
 }
