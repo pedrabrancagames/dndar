@@ -910,98 +910,15 @@ class Game {
     async iniciarMissao(missao) {
         this.campaignManager.setMissaoAtual(missao);
 
-        // Inicializar AR Scene Manager se ainda não existe
-        if (!this.arSceneManager) {
-            this.arSceneManager = new ARSceneManager('scene-container');
-            const arSupported = await this.arSceneManager.init();
-
-            if (!arSupported) {
-                // Limpar ARSceneManager antes de usar fallback
-                this.arSceneManager.dispose();
-                this.arSceneManager = null;
-
-                // Fallback para modo normal se AR não suportado
-                this.irParaTela('combat');
-                if (!this.sceneManager) {
-                    this.sceneManager = new SceneManager('scene-container');
-                    await this.sceneManager.init();
-
-                    this.sceneManager.on('inimigoClicado', ({ instanceId }) => {
-                        if (this.combatManager.modoSelecaoAlvo) {
-                            const resultado = this.combatManager.selecionarAlvo(instanceId);
-                            if (resultado.sucesso) {
-                                this.hud.esconderModoSelecao();
-                                this.sceneManager.limparDestaques();
-                            }
-                        }
-                    });
-                }
-
-                // Mostrar briefing e iniciar combate sem AR
-                await this.gameMaster.apresentarBriefing({
-                    titulo: missao.nome,
-                    texto: missao.briefing
-                });
-
-                const configInimigos = this.campaignManager.getInimigosParaCombate();
-                this.combatManager.iniciarCombate(configInimigos);
-                return;
-            }
-
-            // Callbacks do AR
-            this.arSceneManager.on('inimigoClicado', ({ instanceId }) => {
-                if (this.combatManager.modoSelecaoAlvo) {
-                    const resultado = this.combatManager.selecionarAlvo(instanceId);
-                    if (resultado.sucesso) {
-                        this.hud.esconderModoSelecao();
-                        this.arSceneManager.limparDestaques();
-                    }
-                }
-            });
-
-            this.arSceneManager.on('enemiesPlaced', () => {
-                this.hud.adicionarLog('Inimigos posicionados em AR!', 'buff');
-                this.audioManager.tocarAcao('ar_placement');
-            });
-
-            this.arSceneManager.on('arError', ({ message }) => {
-                console.error('[Game] Erro AR:', message);
-                this.mostrarMensagem(`Erro AR: ${message}`);
-            });
-
-            this.arSceneManager.on('arEnded', () => {
-                console.log('[Game] Sessão AR encerrada');
-                this.isARMode = false;
-            });
-        }
-
-        // Ir para tela de combate
+        // PRIMEIRO: Ir para tela de combate para garantir que o container esteja visível
         this.irParaTela('combat');
 
-        // Tentar iniciar AR
-        const arStarted = await this.arSceneManager.startAR();
+        // Aguardar um frame para garantir que as dimensões do container sejam calculadas
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
-        if (!arStarted) {
-            // Limpar ARSceneManager antes de usar fallback
-            console.warn('[Game] AR não iniciou, usando modo normal');
-            this.arSceneManager.dispose();
-            this.arSceneManager = null;
-
-            if (!this.sceneManager) {
-                this.sceneManager = new SceneManager('scene-container');
-                await this.sceneManager.init();
-
-                this.sceneManager.on('inimigoClicado', ({ instanceId }) => {
-                    if (this.combatManager.modoSelecaoAlvo) {
-                        const resultado = this.combatManager.selecionarAlvo(instanceId);
-                        if (resultado.sucesso) {
-                            this.hud.esconderModoSelecao();
-                            this.sceneManager.limparDestaques();
-                        }
-                    }
-                });
-            }
-
+        // Verificar se já existe um sceneManager ativo - se sim, reutilizar
+        if (this.sceneManager && !this.isARMode) {
+            // Já temos um sceneManager normal, só iniciar combate
             await this.gameMaster.apresentarBriefing({
                 titulo: missao.nome,
                 texto: missao.briefing
@@ -1012,8 +929,72 @@ class Game {
             return;
         }
 
+        // Limpar managers antigos se existirem
+        if (this.arSceneManager) {
+            this.arSceneManager.dispose();
+            this.arSceneManager = null;
+        }
+        if (this.sceneManager) {
+            this.sceneManager.dispose();
+            this.sceneManager = null;
+        }
+
+        // Tentar inicializar AR
+        const arManager = new ARSceneManager('scene-container');
+        const arSupported = await arManager.init();
+
+        if (!arSupported) {
+            // Limpar ARSceneManager antes de usar fallback
+            arManager.dispose();
+
+            // Usar modo normal (fallback)
+            console.log('[Game] AR não suportado, usando modo 3D normal');
+            await this.iniciarModoNormal(missao);
+            return;
+        }
+
+        // Callbacks do AR
+        arManager.on('inimigoClicado', ({ instanceId }) => {
+            if (this.combatManager.modoSelecaoAlvo) {
+                const resultado = this.combatManager.selecionarAlvo(instanceId);
+                if (resultado.sucesso) {
+                    this.hud.esconderModoSelecao();
+                    arManager.limparDestaques();
+                }
+            }
+        });
+
+        arManager.on('enemiesPlaced', () => {
+            this.hud.adicionarLog('Inimigos posicionados em AR!', 'buff');
+            this.audioManager.tocarAcao('ar_placement');
+        });
+
+        arManager.on('arError', ({ message }) => {
+            console.error('[Game] Erro AR:', message);
+            this.mostrarMensagem(`Erro AR: ${message}`);
+        });
+
+        arManager.on('arEnded', () => {
+            console.log('[Game] Sessão AR encerrada');
+            this.isARMode = false;
+        });
+
+        // Tentar iniciar sessão AR
+        const arStarted = await arManager.startAR();
+
+        if (!arStarted) {
+            // Limpar ARSceneManager antes de usar fallback
+            console.warn('[Game] AR não iniciou, usando modo 3D normal');
+            arManager.dispose();
+
+            await this.iniciarModoNormal(missao);
+            return;
+        }
+
+        // Sucesso - usar modo AR
+        this.arSceneManager = arManager;
+        this.sceneManager = arManager;
         this.isARMode = true;
-        this.sceneManager = this.arSceneManager; // Usar AR como scene manager
 
         // Mostrar briefing
         await this.gameMaster.apresentarBriefing({
@@ -1028,6 +1009,35 @@ class Game {
         // Mostrar instruções AR
         this.hud.adicionarLog('Aponte para uma superfície plana', 'buff');
         this.hud.adicionarLog('Toque para posicionar inimigos', 'buff');
+    }
+
+    /**
+     * Inicia o modo normal (3D sem AR)
+     */
+    async iniciarModoNormal(missao) {
+        this.sceneManager = new SceneManager('scene-container');
+        await this.sceneManager.init();
+
+        this.sceneManager.on('inimigoClicado', ({ instanceId }) => {
+            if (this.combatManager.modoSelecaoAlvo) {
+                const resultado = this.combatManager.selecionarAlvo(instanceId);
+                if (resultado.sucesso) {
+                    this.hud.esconderModoSelecao();
+                    this.sceneManager.limparDestaques();
+                }
+            }
+        });
+
+        this.isARMode = false;
+
+        // Mostrar briefing e iniciar combate
+        await this.gameMaster.apresentarBriefing({
+            titulo: missao.nome,
+            texto: missao.briefing
+        });
+
+        const configInimigos = this.campaignManager.getInimigosParaCombate();
+        this.combatManager.iniciarCombate(configInimigos);
     }
 
     /**
