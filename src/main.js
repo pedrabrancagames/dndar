@@ -997,10 +997,10 @@ class Game {
             texto: missao.briefing
         });
 
-        // Iniciar combate com os inimigos da missão
+        // Iniciar combate com os inimigos da missão (forçar reset se houver combate anterior)
         console.log('[Game] Iniciando combate da missão');
         const configInimigos = this.campaignManager.getInimigosParaCombate();
-        this.combatManager.iniciarCombate(configInimigos);
+        this.combatManager.iniciarCombate(configInimigos, true);
 
         // Mostrar instruções AR
         this.hud.adicionarLog('Aponte para uma superfície plana', 'buff');

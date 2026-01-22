@@ -114,10 +114,15 @@ export class CombatManager {
     /**
      * Inicia um novo combate
      */
-    iniciarCombate(configInimigos) {
+    iniciarCombate(configInimigos, forcarReset = false) {
         if (this.emCombate) {
-            console.warn('[CombatManager] Já existe um combate em andamento');
-            return false;
+            if (forcarReset) {
+                console.log('[CombatManager] Forçando reset do combate anterior');
+                this.resetarCombate();
+            } else {
+                console.warn('[CombatManager] Já existe um combate em andamento');
+                return false;
+            }
         }
 
         // Criar inimigos
@@ -417,6 +422,18 @@ export class CombatManager {
 
         this.emit('combateFinalizado', dados);
         console.log(`[CombatManager] Combate finalizado: ${resultado}`);
+    }
+
+    /**
+     * Reseta o combate (força finalização sem emitir eventos)
+     */
+    resetarCombate() {
+        this.emCombate = false;
+        this.modoSelecaoAlvo = false;
+        this.cartaSelecionada = null;
+        this.inimigos = [];
+        this.turnManager.resetar();
+        console.log('[CombatManager] Combate resetado');
     }
 
     /**

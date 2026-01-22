@@ -228,4 +228,15 @@ export class TurnManager {
             heroiAtivoIcon: heroi?.icon || ''
         };
     }
+
+    /**
+     * Reseta o estado do sistema de turnos
+     */
+    resetar() {
+        this.round = 0;
+        this.turnoAtual = 0;
+        this.ordemTurnos = [];
+        this.fase = 'herois';
+        this.heroiAtivo = null;
+    }
 }
