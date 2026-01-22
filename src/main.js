@@ -7,12 +7,14 @@ import { GameMaster } from './gm/GameMaster.js';
 import { HUD } from './ui/HUD.js';
 import { SceneManager } from './render/SceneManager.js';
 import { ARSceneManager } from './render/ARSceneManager.js';
+import { AudioManager } from './audio/AudioManager.js';
 
 class Game {
     constructor() {
         this.combatManager = new CombatManager();
         this.gameMaster = new GameMaster();
         this.hud = new HUD();
+        this.audioManager = new AudioManager();
         this.sceneManager = null; // Inicializado quando entrar em combate
         this.arSceneManager = null; // Inicializado quando entrar em modo AR
         this.isARMode = false;
@@ -58,6 +60,11 @@ class Game {
 
         // Configurar callbacks do game master
         this.setupGMCallbacks();
+
+        this.atualizarLoading(90, 'Carregando sons...');
+
+        // Carregar sons
+        await this.audioManager.carregarSons();
 
         this.atualizarLoading(100, 'Pronto!');
 
@@ -145,6 +152,7 @@ class Game {
             const resultado = this.combatManager.selecionarCarta(cardId);
 
             if (resultado.modoSelecao) {
+                this.audioManager.tocarAcao('card_select');
                 this.hud.mostrarModoSelecao();
 
                 // Destacar alvos válidos
@@ -198,6 +206,9 @@ class Game {
             this.hud.adicionarLog('Combate iniciado!', 'buff');
             this.hud.atualizar(data);
 
+            // Iniciar música de combate
+            this.audioManager.iniciarMusicaCombate();
+
             // Adicionar inimigos à cena
             await this.sceneManager?.adicionarInimigos(
                 this.combatManager.inimigos.map(e => ({
@@ -217,6 +228,7 @@ class Game {
             const heroi = this.combatManager.herois.find(h => h.id === data.heroiId);
             if (heroi) {
                 this.hud.adicionarLog(`Turno de ${heroi.nome}`);
+                this.audioManager.tocarAcao('turn_start');
             }
         });
 
@@ -251,8 +263,13 @@ class Game {
                         this.sceneManager?.atualizarBarraVida(data.alvoData.instanceId, data.alvoData.pvPercent);
                     }
 
+                    // Som de dano
+                    this.audioManager.tocarAcao(tipoEfeito, { critico: resultado.critico });
+                    this.audioManager.tocarAcao('enemy_hurt');
+
                     if (resultado.derrotado) {
                         this.hud.adicionarLog(`${data.alvo} foi derrotado!`, 'buff');
+                        this.audioManager.tocarAcao('enemy_death');
                         if (data.alvoData?.instanceId) {
                             this.sceneManager?.removerInimigo(data.alvoData.instanceId);
                         }
@@ -261,15 +278,17 @@ class Game {
 
                 if (resultado.tipo === 'cura') {
                     this.hud.adicionarLog(`${resultado.alvo} curou ${resultado.valor} PV`, 'heal');
-                    // Efeito de partículas de cura (será implementado quando heróis tiverem posição 3D)
+                    this.audioManager.tocarAcao('heal');
                 }
 
                 if (resultado.tipo === 'buff') {
                     this.hud.adicionarLog(`${resultado.alvo} recebeu ${resultado.buff}`, 'buff');
+                    this.audioManager.tocarAcao('buff');
                 }
 
                 if (resultado.tipo === 'debuff') {
                     this.hud.adicionarLog(`${resultado.alvo} foi afetado por ${resultado.debuff}`, 'damage');
+                    this.audioManager.tocarAcao('debuff');
                     // Efeito de debuff no inimigo
                     if (data.alvoData?.instanceId) {
                         this.sceneManager?.mostrarDebuff?.(data.alvoData.instanceId);
@@ -302,6 +321,10 @@ class Game {
             this.hud.adicionarLog(`${data.atacante} ataca ${data.alvo} (${data.ataque})`, 'damage');
             this.hud.adicionarLog(`${data.alvo} recebe ${data.dano} de dano`, 'damage');
 
+            // Som de ataque e dano no herói
+            this.audioManager.tocar('sword_hit');
+            this.audioManager.tocarAcao('hero_hurt');
+
             // Encontrar índice do herói para animação
             const heroiIndex = this.combatManager.herois.findIndex(h => h.nome === data.alvo);
             if (heroiIndex >= 0) {
@@ -310,6 +333,7 @@ class Game {
 
             if (data.alvoIncapacitado) {
                 this.hud.adicionarLog(`${data.alvo} foi incapacitado!`, 'damage');
+                this.audioManager.tocarAcao('hero_down');
             }
         });
 
@@ -322,9 +346,15 @@ class Game {
         });
 
         this.combatManager.on('combateFinalizado', async (data) => {
+            // Parar música de combate
+            this.audioManager.pararMusica();
+
             if (data.resultado === 'vitoria') {
                 this.hud.adicionarLog('=== VITÓRIA ===', 'buff');
                 this.hud.adicionarLog(`XP ganho: ${data.recompensas?.xp || 0}`, 'buff');
+
+                // Som de vitória
+                this.audioManager.tocarAcao('victory');
 
                 // Limpar todos os inimigos restantes imediatamente
                 this.sceneManager?.limparInimigos();
@@ -332,6 +362,10 @@ class Game {
                 await this.gameMaster.anunciarVitoria();
             } else {
                 this.hud.adicionarLog('=== DERROTA ===', 'damage');
+
+                // Som de derrota
+                this.audioManager.tocarAcao('defeat');
+
                 await this.gameMaster.anunciarDerrota();
             }
 
@@ -473,6 +507,7 @@ class Game {
 
             this.arSceneManager.on('enemiesPlaced', () => {
                 this.hud.adicionarLog('Inimigos posicionados em AR!', 'buff');
+                this.audioManager.tocarAcao('ar_placement');
             });
 
             this.arSceneManager.on('arError', ({ message }) => {
