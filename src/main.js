@@ -502,11 +502,33 @@ class Game {
         this.isARMode = true;
         this.sceneManager = this.arSceneManager; // Usar AR como scene manager
 
-        // Configuração de combate AR
-        const configInimigos = [
-            { id: 'goblin' },
-            { id: 'rato_gigante' }
+        // Grupos de inimigos variados para combate AR
+        const gruposInimigos = [
+            // Grupo 1: Goblins e Rato
+            [{ id: 'goblin' }, { id: 'rato_gigante' }],
+            // Grupo 2: Mortos-vivos
+            [{ id: 'esqueleto' }, { id: 'zumbi' }],
+            // Grupo 3: Orcs
+            [{ id: 'orc' }, { id: 'kobold' }],
+            // Grupo 4: Bestas
+            [{ id: 'lobo' }, { id: 'rato_gigante' }, { id: 'rato_gigante' }],
+            // Grupo 5: Monstros variados
+            [{ id: 'goblin' }, { id: 'esqueleto' }, { id: 'kobold' }],
+            // Grupo 6: Desafio maior
+            [{ id: 'ghoul' }, { id: 'esqueleto' }],
+            // Grupo 7: Troll sozinho (mini-boss)
+            [{ id: 'troll' }],
+            // Grupo 8: Ogro e Goblins
+            [{ id: 'ogro' }, { id: 'goblin' }],
+            // Grupo 9: Mímico e surpresas
+            [{ id: 'mimic' }, { id: 'kobold' }],
+            // Grupo 10: Contemplador (boss)
+            [{ id: 'beholder' }]
         ];
+
+        // Selecionar grupo aleatório
+        const grupoIndex = Math.floor(Math.random() * gruposInimigos.length);
+        const configInimigos = gruposInimigos[grupoIndex];
 
         // Iniciar combate (os inimigos serão posicionados quando o usuário tocar no reticle)
         this.combatManager.iniciarCombate(configInimigos);
