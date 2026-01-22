@@ -191,6 +191,8 @@ export class AudioManager {
     iniciarMusicaCombate() {
         if (this.isMuted || !this.music) return;
 
+        // Garantir que o volume está correto antes de tocar
+        this.music.volume = this.musicVolume;
         this.music.currentTime = 0;
         this.music.play().catch(() => {
             // Ignorar erro de autoplay bloqueado

@@ -187,7 +187,15 @@ export class SaveManager {
             }
 
             const settings = JSON.parse(json);
-            return { ...this.getDefaultSettings(), ...settings };
+            const defaults = this.getDefaultSettings();
+
+            // Deep merge para garantir que todas as propriedades existam
+            return {
+                ...defaults,
+                audio: { ...defaults.audio, ...settings.audio },
+                gameplay: { ...defaults.gameplay, ...settings.gameplay },
+                acessibilidade: { ...defaults.acessibilidade, ...settings.acessibilidade }
+            };
         } catch (error) {
             console.error('[SaveManager] Erro ao carregar configurações:', error);
             return this.getDefaultSettings();
