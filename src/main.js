@@ -83,6 +83,7 @@ class Game {
         this.setupSettingsCallbacks();
         this.setupMissionCallbacks();
         this.setupMapCallbacks();
+        this.setupProfileCallbacks();
 
         this.atualizarLoading(85, 'Carregando sons...');
 
@@ -145,7 +146,10 @@ class Game {
             this.irParaTela('map');
             this.renderizarMapa();
         });
-        this.elementos.btnProfile?.addEventListener('click', () => this.mostrarMensagem('Perfil em desenvolvimento...'));
+        this.elementos.btnProfile?.addEventListener('click', () => {
+            this.irParaTela('profile');
+            this.renderizarPerfil();
+        });
         this.elementos.btnSettings?.addEventListener('click', () => this.abrirConfiguracoes());
         this.elementos.closeSettings?.addEventListener('click', () => this.fecharConfiguracoes());
 
@@ -1322,6 +1326,179 @@ class Game {
 
         // Salvar
         this.saveManager.salvar(this.saveData);
+    }
+
+    /**
+     * Configura callbacks da tela de perfil
+     */
+    setupProfileCallbacks() {
+        // Botão voltar
+        document.getElementById('profile-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+        });
+    }
+
+    /**
+     * Renderiza a tela de perfil com todos os dados do jogador
+     */
+    renderizarPerfil() {
+        if (!this.saveData) {
+            this.saveData = this.saveManager.carregar();
+        }
+
+        // Calcular nível geral do jogador (média dos heróis)
+        const herois = this.saveData.herois;
+        const nivelTotal = Object.values(herois).reduce((sum, h) => sum + (h.nivel || 1), 0);
+        const nivelMedio = Math.floor(nivelTotal / 4);
+
+        // Calcular XP total
+        const xpTotal = Object.values(herois).reduce((sum, h) => sum + (h.xp || 0), 0);
+        const xpParaProximo = nivelMedio * 100;
+        const xpAtual = xpTotal % 100;
+
+        // Atualizar card do jogador
+        const playerLevel = document.getElementById('player-level');
+        const playerXpFill = document.getElementById('player-xp-fill');
+        const playerXpText = document.getElementById('player-xp-text');
+        const playerTitle = document.getElementById('player-title');
+
+        if (playerLevel) playerLevel.textContent = `Nv ${nivelMedio}`;
+        if (playerXpFill) playerXpFill.style.width = `${(xpAtual / xpParaProximo) * 100}%`;
+        if (playerXpText) playerXpText.textContent = `${xpAtual}/${xpParaProximo} XP`;
+
+        // Definir título baseado no progresso
+        const titulos = [
+            { nivel: 1, titulo: 'Novato do Bairro Esquecido' },
+            { nivel: 3, titulo: 'Explorador Iniciante' },
+            { nivel: 5, titulo: 'Caçador de Monstros' },
+            { nivel: 7, titulo: 'Guardião do Bairro' },
+            { nivel: 10, titulo: 'Campeão do Bairro Esquecido' },
+            { nivel: 15, titulo: 'Lenda Viva' }
+        ];
+        const tituloAtual = titulos.filter(t => nivelMedio >= t.nivel).pop() || titulos[0];
+        if (playerTitle) playerTitle.textContent = tituloAtual.titulo;
+
+        // Atualizar estatísticas
+        const stats = this.saveData.estatisticas;
+        const combatesTotal = stats.combatesVencidos + stats.combatesPerdidos;
+
+        document.getElementById('stat-combats')?.textContent &&
+            (document.getElementById('stat-combats').textContent = combatesTotal);
+        document.getElementById('stat-victories')?.textContent &&
+            (document.getElementById('stat-victories').textContent = stats.combatesVencidos);
+        document.getElementById('stat-enemies')?.textContent &&
+            (document.getElementById('stat-enemies').textContent = stats.inimigosDerotados);
+        document.getElementById('stat-damage')?.textContent &&
+            (document.getElementById('stat-damage').textContent = this.formatarNumero(stats.danoTotal));
+        document.getElementById('stat-healing')?.textContent &&
+            (document.getElementById('stat-healing').textContent = this.formatarNumero(stats.curaTotal));
+        document.getElementById('stat-time')?.textContent &&
+            (document.getElementById('stat-time').textContent = this.saveManager.formatarTempo(stats.tempoJogado));
+
+        // Atualizar progresso da campanha
+        const campanha = this.saveData.campanha;
+        const missoesCompletas = campanha.missoesCompletas?.length || 0;
+
+        document.getElementById('campaign-chapter')?.textContent &&
+            (document.getElementById('campaign-chapter').textContent = `Capítulo ${campanha.capituloAtual}`);
+        document.getElementById('campaign-mission')?.textContent &&
+            (document.getElementById('campaign-mission').textContent = `Missão ${campanha.missaoAtual}`);
+        document.getElementById('campaign-fill')?.style &&
+            (document.getElementById('campaign-fill').style.width = `${(missoesCompletas / 5) * 100}%`);
+        document.getElementById('campaign-text')?.textContent &&
+            (document.getElementById('campaign-text').textContent = `${missoesCompletas}/5 missões completas`);
+
+        // Renderizar heróis
+        this.renderizarHeroisPerfil();
+
+        // Renderizar conquistas
+        this.renderizarConquistas();
+    }
+
+    /**
+     * Formata números grandes para exibição
+     */
+    formatarNumero(num) {
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+        if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+        return num.toString();
+    }
+
+    /**
+     * Renderiza os cards de heróis na tela de perfil
+     */
+    renderizarHeroisPerfil() {
+        const container = document.getElementById('heroes-grid');
+        if (!container) return;
+
+        // Dados dos heróis
+        const heroiData = [
+            { id: 'guerreiro', nome: 'Guerreiro', icon: '⚔️', classe: 'guerreiro' },
+            { id: 'mago', nome: 'Mago', icon: '🔮', classe: 'mago' },
+            { id: 'ladino', nome: 'Ladino', icon: '🗡️', classe: 'ladino' },
+            { id: 'clerigo', nome: 'Clérigo', icon: '✝️', classe: 'clerigo' }
+        ];
+
+        container.innerHTML = heroiData.map(heroi => {
+            const save = this.saveData.herois[heroi.id] || { nivel: 1, pv: 20, pvMax: 20, xp: 0 };
+            const pvPercent = (save.pv / save.pvMax) * 100;
+            const xpPercent = ((save.xp || 0) / (save.nivel * 100)) * 100;
+
+            return `
+                <div class="hero-card" data-class="${heroi.classe}">
+                    <span class="hero-card-icon">${heroi.icon}</span>
+                    <span class="hero-card-name">${heroi.nome}</span>
+                    <span class="hero-card-class">${heroi.classe}</span>
+                    <span class="hero-card-level">Nível ${save.nivel}</span>
+                    <div class="hero-card-stats">
+                        <div class="hero-stat-row">
+                            <span class="hero-stat-icon">❤️</span>
+                            <div class="stat-bar hp-bar">
+                                <div class="stat-fill" style="width: ${pvPercent}%"></div>
+                            </div>
+                            <span>${save.pv}/${save.pvMax}</span>
+                        </div>
+                        <div class="hero-stat-row">
+                            <span class="hero-stat-icon">⭐</span>
+                            <div class="stat-bar pa-bar">
+                                <div class="stat-fill" style="width: ${xpPercent}%"></div>
+                            </div>
+                            <span>${save.xp || 0} XP</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Renderiza as conquistas na tela de perfil
+     */
+    renderizarConquistas() {
+        const container = document.getElementById('achievements-grid');
+        if (!container) return;
+
+        // Definir conquistas
+        const conquistas = [
+            { id: 'first_blood', icon: '🗡️', nome: 'Primeiro Sangue', desc: 'Vença seu primeiro combate', condicao: () => this.saveData.estatisticas.combatesVencidos >= 1 },
+            { id: 'monster_hunter', icon: '💀', nome: 'Caçador', desc: 'Derrote 10 inimigos', condicao: () => this.saveData.estatisticas.inimigosDerotados >= 10 },
+            { id: 'demon_slayer', icon: '👹', nome: 'Matador de Demônios', desc: 'Derrote 50 inimigos', condicao: () => this.saveData.estatisticas.inimigosDerotados >= 50 },
+            { id: 'legendary', icon: '🐉', nome: 'Lendário', desc: 'Derrote 100 inimigos', condicao: () => this.saveData.estatisticas.inimigosDerotados >= 100 },
+            { id: 'healer', icon: '💚', nome: 'Curandeiro', desc: 'Cure 100 de vida', condicao: () => this.saveData.estatisticas.curaTotal >= 100 },
+            { id: 'destroyer', icon: '💥', nome: 'Destruidor', desc: 'Cause 500 de dano', condicao: () => this.saveData.estatisticas.danoTotal >= 500 },
+            { id: 'unstoppable', icon: '🔥', nome: 'Imparável', desc: 'Vença 10 combates', condicao: () => this.saveData.estatisticas.combatesVencidos >= 10 },
+            { id: 'champion', icon: '🏆', nome: 'Campeão', desc: 'Complete o Capítulo 1', condicao: () => (this.saveData.campanha.missoesCompletas?.length || 0) >= 5 }
+        ];
+
+        container.innerHTML = conquistas.map(conquista => {
+            const desbloqueada = conquista.condicao();
+            return `
+                <div class="achievement-badge ${desbloqueada ? 'unlocked' : 'locked'}" data-tooltip="${conquista.desc}">
+                    <span class="achievement-icon">${conquista.icon}</span>
+                    <span class="achievement-name">${conquista.nome}</span>
+                </div>
+            `;
+        }).join('');
     }
 }
 
