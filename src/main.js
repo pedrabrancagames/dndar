@@ -842,10 +842,16 @@ class Game {
         this.settings.audio.vozVolume = parseInt(document.getElementById('voice-volume')?.value || 80) / 100;
         this.settings.audio.mudo = document.getElementById('mute-toggle')?.checked || false;
 
+        // Aplicar configurações ao AudioManager IMEDIATAMENTE
+        this.aplicarConfiguracoesAudio();
+
+        // Salvar no localStorage
         this.saveManager.salvarConfiguracoes(this.settings);
 
         // Também salvar configurações do GameMaster
         this.salvarConfiguracoesGameMaster();
+
+        console.log('[Game] Configurações de áudio salvas e aplicadas:', this.settings.audio);
     }
 
     /**

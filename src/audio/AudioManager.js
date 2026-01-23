@@ -73,10 +73,8 @@ export class AudioManager {
 
         await Promise.all(loadPromises);
 
-        // Carregar música de combate
-        this.music = new Audio('/public/sounds/combat_music.mp3');
-        this.music.loop = true;
-        this.music.volume = this.musicVolume;
+        // Música de combate será criada dinamicamente ao iniciar combate
+        // Isso evita problemas de instâncias duplicadas
 
         this.isLoaded = true;
         console.log(`[AudioManager] ${this.sounds.size} sons carregados`);
@@ -190,50 +188,49 @@ export class AudioManager {
      * Inicia a música de combate
      */
     iniciarMusicaCombate() {
-        if (this.isMuted || !this.music) return;
+        if (this.isMuted) return;
 
-        // Parar música anterior se estiver tocando
-        if (this.musicPlaying) {
-            this.pararMusica();
-        }
+        console.log('[AudioManager] Iniciando música de combate...');
 
-        // Garantir que o volume está correto antes de tocar
+        // SEMPRE parar e destruir música anterior primeiro
+        this.pararMusica();
+
+        // Criar nova instância de áudio (garante que não há conflitos)
+        this.music = new Audio('/public/sounds/combat_music.mp3');
+        this.music.loop = true;
         this.music.volume = this.musicVolume;
-        this.music.currentTime = 0;
+
         this.music.play().then(() => {
             this.musicPlaying = true;
-            console.log('[AudioManager] Música de combate iniciada');
+            console.log('[AudioManager] Música de combate iniciada com sucesso, volume:', this.musicVolume);
         }).catch((err) => {
             console.warn('[AudioManager] Erro ao iniciar música:', err);
-            // Ignorar erro de autoplay bloqueado
+            this.musicPlaying = false;
         });
     }
 
     /**
-     * Para a música
+     * Para a música completamente
      */
     pararMusica() {
-        console.log('[AudioManager] Tentando parar música...');
+        console.log('[AudioManager] Parando música...');
 
         if (this.music) {
             try {
-                // Pausar
+                // Pausar imediatamente
                 this.music.pause();
-                // Resetar tempo
+                // Resetar posição
                 this.music.currentTime = 0;
-                // Zerar volume temporariamente para garantir
-                this.music.volume = 0;
-
-                // Restaurar volume original após pequeno delay
-                setTimeout(() => {
-                    if (this.music) {
-                        this.music.volume = this.musicVolume;
-                    }
-                }, 100);
-
-                console.log('[AudioManager] Música parada com sucesso');
+                // Remover fonte para garantir parada completa
+                this.music.src = '';
+                // Remover da memória
+                this.music.load();
+                // Limpar referência
+                this.music = null;
+                console.log('[AudioManager] Música parada e destruída');
             } catch (err) {
                 console.error('[AudioManager] Erro ao parar música:', err);
+                this.music = null;
             }
         }
 
