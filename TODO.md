@@ -214,8 +214,8 @@
 - [x] Métodos de efeitos visuais faltantes no SceneManager
 
 ### A Corrigir
-- [ ] Verificar se todos os modelos GLB existem para todos os inimigos
-- [ ] Algumas cartas podem não mostrar efeitos visuais corretos
+- [x] Verificar se todos os modelos GLB existem para todos os inimigos
+- [x] Algumas cartas podem não mostrar efeitos visuais corretos
 
 ---
 

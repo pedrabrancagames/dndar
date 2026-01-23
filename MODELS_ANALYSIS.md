@@ -226,15 +226,15 @@ Para substituir partículas ou complementar:
 ## 📋 LISTA DE TAREFAS RESUMIDA
 
 ### Para criar (Prioridade Alta):
-1. [ ] `shadow.glb` - Substituir placeholder do inimigo Sombra Menor
+1. [x] `shadow.glb` - Substituir placeholder do inimigo Sombra Menor
 2. [ ] `hero_fighter.glb` - Modelo 3D do Guerreiro
 3. [ ] `hero_wizard.glb` - Modelo 3D do Mago
 4. [ ] `hero_rogue.glb` - Modelo 3D do Ladino
 5. [ ] `hero_cleric.glb` - Modelo 3D do Clérigo
 
 ### Para criar (Prioridade Média):
-6. [ ] `giant_spider.glb` - Aranha Gigante (inimigo comum de dungeon)
-7. [ ] `specter.glb` - Espectro (combina com tema de mortos-vivos)
+6. [x] `giant_spider.glb` - Aranha Gigante (inimigo comum de dungeon)
+7. [x] `specter.glb` - Espectro (combina com tema de mortos-vivos)
 8. [ ] `wight.glb` - Wight (elite morto-vivo)
 9. [ ] `hobgoblin.glb` - Hobgoblin (líder de goblins)
 10. [ ] `bugbear.glb` - Bugbear (bom para emboscadas)

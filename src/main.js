@@ -292,15 +292,38 @@ class Game {
         this.combatManager.on('cartaUsada', async (data) => {
             this.hud.adicionarLog(`${data.usuario} usa ${data.carta} em ${data.alvo}`);
 
-            // Determinar tipo de efeito visual baseado na carta
-            const cartaNome = data.carta.toLowerCase();
+            // Determinar tipo de efeito visual baseado nas propriedades da carta
             let tipoEfeito = 'dano';
-            if (cartaNome.includes('fogo') || cartaNome.includes('fire') || cartaNome.includes('meteor')) {
-                tipoEfeito = 'fogo';
-            } else if (cartaNome.includes('gelo') || cartaNome.includes('congela') || cartaNome.includes('freeze')) {
-                tipoEfeito = 'gelo';
-            } else if (cartaNome.includes('raio') || cartaNome.includes('lightning') || cartaNome.includes('corrente')) {
-                tipoEfeito = 'raio';
+            const cartaData = data.cartaData;
+
+            if (cartaData) {
+                // Verificar pelo ícone da carta
+                const icon = cartaData.icon || '';
+                if (icon === '🔥' || icon === '☄️') {
+                    tipoEfeito = 'fogo';
+                } else if (icon === '❄️') {
+                    tipoEfeito = 'gelo';
+                } else if (icon === '⚡' || icon === '⛈️') {
+                    tipoEfeito = 'raio';
+                }
+
+                // Verificar pelo status aplicado
+                const statusTipo = cartaData.efeitos?.status?.tipo || '';
+                if (statusTipo === 'queimando') {
+                    tipoEfeito = 'fogo';
+                } else if (statusTipo === 'congelado') {
+                    tipoEfeito = 'gelo';
+                }
+            } else {
+                // Fallback: verificar pelo nome da carta
+                const cartaNome = data.carta.toLowerCase();
+                if (cartaNome.includes('fogo') || cartaNome.includes('fire') || cartaNome.includes('meteor')) {
+                    tipoEfeito = 'fogo';
+                } else if (cartaNome.includes('gelo') || cartaNome.includes('congela') || cartaNome.includes('freeze')) {
+                    tipoEfeito = 'gelo';
+                } else if (cartaNome.includes('raio') || cartaNome.includes('lightning') || cartaNome.includes('corrente')) {
+                    tipoEfeito = 'raio';
+                }
             }
 
             for (const resultado of data.resultados) {

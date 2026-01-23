@@ -288,6 +288,7 @@ export class CombatManager {
         // Emitir evento
         this.emit('cartaUsada', {
             carta: carta.nome,
+            cartaData: carta, // Dados completos da carta para efeitos visuais
             usuario: usuario.nome,
             alvo: alvo.nome,
             resultados,
@@ -334,6 +335,7 @@ export class CombatManager {
 
         this.emit('cartaAoE', {
             carta: carta.nome,
+            cartaData: carta, // Dados completos da carta para efeitos visuais
             usuario: usuario.nome,
             resultados: todosResultados
         });
