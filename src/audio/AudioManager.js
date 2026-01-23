@@ -213,12 +213,47 @@ export class AudioManager {
      * Para a música
      */
     pararMusica() {
+        console.log('[AudioManager] Tentando parar música...');
+
         if (this.music) {
-            this.music.pause();
-            this.music.currentTime = 0;
-            this.musicPlaying = false;
-            console.log('[AudioManager] Música parada');
+            try {
+                // Pausar
+                this.music.pause();
+                // Resetar tempo
+                this.music.currentTime = 0;
+                // Zerar volume temporariamente para garantir
+                this.music.volume = 0;
+
+                // Restaurar volume original após pequeno delay
+                setTimeout(() => {
+                    if (this.music) {
+                        this.music.volume = this.musicVolume;
+                    }
+                }, 100);
+
+                console.log('[AudioManager] Música parada com sucesso');
+            } catch (err) {
+                console.error('[AudioManager] Erro ao parar música:', err);
+            }
         }
+
+        this.musicPlaying = false;
+    }
+
+    /**
+     * Para toda mídia de áudio (emergência)
+     */
+    pararTudo() {
+        this.pararMusica();
+        this.gameMaster?.stop?.();
+
+        // Parar todos os sons ativos
+        this.sounds.forEach(audio => {
+            try {
+                audio.pause();
+                audio.currentTime = 0;
+            } catch (err) { }
+        });
     }
 
     /**

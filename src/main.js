@@ -375,7 +375,10 @@ class Game {
         });
 
         this.combatManager.on('combateFinalizado', async (data) => {
-            // Parar música de combate
+            console.log('[Game] Combate finalizado - resultado:', data.resultado);
+
+            // Parar música de combate IMEDIATAMENTE
+            console.log('[Game] Parando música de combate...');
             this.audioManager.pararMusica();
 
             if (data.resultado === 'vitoria') {
@@ -403,14 +406,26 @@ class Game {
                 this.gameMaster.anunciarDerrota(true);
             }
 
+            // Parar música novamente por segurança (após 1 segundo)
+            setTimeout(() => {
+                console.log('[Game] Segunda tentativa de parar música...');
+                this.audioManager.pararMusica();
+            }, 1000);
+
             // Voltar para home após delay (garantido)
             setTimeout(() => {
+                console.log('[Game] Voltando para home...');
+
+                // Parar música mais uma vez antes de mudar de tela
+                this.audioManager.pararMusica();
+
                 // Fechar qualquer diálogo aberto
                 this.gameMaster.continuarDialogo();
                 this.irParaTela('home');
 
                 // Limpar estado do AR se estiver ativo
                 if (this.isARMode && this.arSceneManager) {
+                    console.log('[Game] Encerrando sessão AR...');
                     this.arSceneManager.stopAR?.();
                     this.isARMode = false;
                 }
