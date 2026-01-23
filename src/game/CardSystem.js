@@ -155,6 +155,7 @@ export class CardSystem {
                 valor: resultado.dano,
                 critico,
                 alvo: alvo.nome,
+                alvoId: alvo.instanceId || alvo.id, // ID para identificar unicamente quem sofreu o dano
                 derrotado: resultado.derrotado
             });
 

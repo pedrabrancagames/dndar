@@ -339,10 +339,19 @@ class Game {
                         : `${resultado.valor} de dano`;
                     this.hud.adicionarLog(msg, 'damage');
 
+                    // ID do alvo específico deste resultado
+                    const targetId = resultado.alvoId || data.alvoData?.instanceId;
+
                     // Efeito visual no inimigo com partículas
-                    if (data.alvoData?.instanceId) {
-                        this.sceneManager?.mostrarDanoInimigo(data.alvoData.instanceId, resultado.valor, tipoEfeito);
-                        this.sceneManager?.atualizarBarraVida(data.alvoData.instanceId, data.alvoData.pvPercent);
+                    if (targetId) {
+                        this.sceneManager?.mostrarDanoInimigo(targetId, resultado.valor, tipoEfeito);
+
+                        // Atualizar barra de vida se possível - precisamos saber a nova %
+                        // Como não temos acesso direto aqui, podemos tentar pegar do combatManager
+                        const inimigo = this.combatManager.inimigos.find(e => e.instanceId === targetId);
+                        if (inimigo) {
+                            this.sceneManager?.atualizarBarraVida(targetId, inimigo.getDisplayData().pvPercent);
+                        }
                     }
 
                     // Som de dano
@@ -350,10 +359,10 @@ class Game {
                     this.audioManager.tocarAcao('enemy_hurt');
 
                     if (resultado.derrotado) {
-                        this.hud.adicionarLog(`${data.alvo} foi derrotado!`, 'buff');
+                        this.hud.adicionarLog(`${resultado.alvo} foi derrotado!`, 'buff');
                         this.audioManager.tocarAcao('enemy_death');
-                        if (data.alvoData?.instanceId) {
-                            this.sceneManager?.removerInimigo(data.alvoData.instanceId);
+                        if (targetId) {
+                            this.sceneManager?.removerInimigo(targetId);
                         }
                     }
                 }
@@ -372,8 +381,9 @@ class Game {
                     this.hud.adicionarLog(`${resultado.alvo} foi afetado por ${resultado.debuff}`, 'damage');
                     this.audioManager.tocarAcao('debuff');
                     // Efeito de debuff no inimigo
-                    if (data.alvoData?.instanceId) {
-                        this.sceneManager?.mostrarDebuff(data.alvoData.instanceId);
+                    const targetId = resultado.alvoId || data.alvoData?.instanceId;
+                    if (targetId) {
+                        this.sceneManager?.mostrarDebuff(targetId);
                     }
                 }
             }
@@ -386,6 +396,77 @@ class Game {
             // Narrar ações importantes
             for (const resultado of data.resultados) {
                 await this.gameMaster.narrarAcao(resultado);
+            }
+        });
+
+        // Handler para cartas AoE (Área de Efeito)
+        this.combatManager.on('cartaAoE', async (data) => {
+            this.hud.adicionarLog(`${data.usuario} usa ${data.carta} em todos!`);
+
+            // Reutilizar a lógica de efeitos visuais do cartaUsada
+            // Criamos um objeto simétrico para processar
+            const proxyData = {
+                ...data,
+                alvoData: null // AoE não tem alvo único inicial
+            };
+
+            // Processar resultados visualmente
+            // (Poderíamos refatorar isso para uma função separada 'processarResultadosVisuais', mas
+            // por agora vou duplicar a chamada do handler anterior via emit simulado ou apenas processar direto)
+
+            // Vamos processar direto para atualizar a UI corretamente
+            let tipoEfeito = 'dano'; // Default
+
+            // Tentar descobrir efeito
+            const cartaNome = data.carta.toLowerCase();
+            if (cartaNome.includes('fogo') || cartaNome.includes('fire') || cartaNome.includes('meteor')) {
+                tipoEfeito = 'fogo';
+            } else if (cartaNome.includes('gelo') || cartaNome.includes('congela')) {
+                tipoEfeito = 'gelo';
+            } else if (cartaNome.includes('raio') || cartaNome.includes('lightning')) {
+                tipoEfeito = 'raio';
+            }
+
+            for (const resultado of data.resultados) {
+                if (resultado.tipo === 'dano') {
+                    const targetId = resultado.alvoId;
+
+                    if (targetId) {
+                        this.sceneManager?.mostrarDanoInimigo(targetId, resultado.valor, tipoEfeito);
+                        const inimigo = this.combatManager.inimigos.find(e => e.instanceId === targetId);
+                        if (inimigo) {
+                            this.sceneManager?.atualizarBarraVida(targetId, inimigo.getDisplayData().pvPercent);
+                        }
+
+                        if (resultado.derrotado) {
+                            this.hud.adicionarLog(`${resultado.alvo} foi derrotado!`, 'buff');
+                            this.sceneManager?.removerInimigo(targetId);
+                        }
+                    }
+                }
+            }
+
+            // Sons
+            this.audioManager.tocarAcao(tipoEfeito);
+            if (data.resultados.some(r => r.derrotado)) {
+                this.audioManager.tocarAcao('enemy_death');
+            } else {
+                this.audioManager.tocarAcao('enemy_hurt');
+            }
+
+            this.hud.atualizar(this.combatManager.getEstadoHUD());
+
+            // Narrar
+            if (data.resultados.some(r => r.derrotado)) {
+                await this.gameMaster.narrarAcao({ derrotado: true });
+            } else if (data.resultados.some(r => r.critico)) {
+                await this.gameMaster.narrarAcao({ critico: true });
+            } else {
+                // Narrar um dano alto genérico se houve
+                const maiorDano = Math.max(...data.resultados.filter(r => r.tipo === 'dano').map(r => r.valor));
+                if (maiorDano > 0) {
+                    await this.gameMaster.narrarAcao({ tipo: 'dano', valor: maiorDano });
+                }
             }
         });
 
