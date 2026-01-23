@@ -444,28 +444,54 @@ export class ARSceneManager {
     }
 
     async loadModel(modelPath) {
+        let model;
+
         if (this.modelCache.has(modelPath)) {
-            return this.modelCache.get(modelPath).clone();
+            model = this.modelCache.get(modelPath).clone();
+        } else {
+            model = await new Promise((resolve, reject) => {
+                this.gltfLoader.load(
+                    modelPath,
+                    (gltf) => {
+                        const m = gltf.scene;
+                        m.traverse((child) => {
+                            if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                            }
+                        });
+                        // Salvar clone puro no cache
+                        this.modelCache.set(modelPath, m.clone());
+                        resolve(m);
+                    },
+                    undefined,
+                    (error) => reject(error)
+                );
+            });
         }
 
-        return new Promise((resolve, reject) => {
-            this.gltfLoader.load(
-                modelPath,
-                (gltf) => {
-                    const model = gltf.scene;
-                    model.traverse((child) => {
-                        if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
+        // Importante: Clonar materiais para permitir manipulação independente (ex: fade out na morte)
+        // Sem isso, alterar a opacidade de um inimigo afeta todos os outros do mesmo tipo
+        model.traverse((child) => {
+            if (child.isMesh) {
+                if (Array.isArray(child.material)) {
+                    child.material = child.material.map(m => m.clone());
+                } else if (child.material) {
+                    child.material = child.material.clone();
+                }
+
+                // Garantir suporte a transparência para o fade out
+                if (child.material) {
+                    // Se for array, tratar cada um
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach(m => {
+                        m.transparent = true; // Necessário para opacidade funcionar depois
                     });
-                    this.modelCache.set(modelPath, model.clone());
-                    resolve(model);
-                },
-                undefined,
-                (error) => reject(error)
-            );
+                }
+            }
         });
+
+        return model;
     }
 
     criarPlaceholderVisivel(inimigo, cor) {
