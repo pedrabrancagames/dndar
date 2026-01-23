@@ -244,7 +244,7 @@ export class ARSceneManager {
         position.setFromMatrixPosition(this.reticle.matrix);
 
         const meshesArray = Array.from(this.enemyMeshes.values());
-        const spacing = 0.8; // Espaçamento maior entre inimigos
+        const spacing = 1.5; // Espaçamento maior para evitar sobreposição (Scale 3.0)
 
         meshesArray.forEach((mesh, index) => {
             const offset = (index - (meshesArray.length - 1) / 2) * spacing;
@@ -643,6 +643,17 @@ export class ARSceneManager {
     removerInimigo(instanceId) {
         const mesh = this.enemyMeshes.get(instanceId);
         if (!mesh) return;
+
+        // Desabilitar interações imediatamente
+        mesh.userData.selecionavel = false;
+
+        // Esconder barra de vida imediatamente para evitar persistência visual
+        if (mesh.userData.healthBar) {
+            mesh.userData.healthBar.visible = false;
+        }
+
+        // Remover da lista de meshes ativos para evitar click
+        this.enemyMeshes.delete(instanceId);
 
         // Efeito de partículas de morte
         if (this.particleSystem) {
