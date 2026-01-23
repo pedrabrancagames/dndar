@@ -244,7 +244,7 @@ export class ARSceneManager {
         position.setFromMatrixPosition(this.reticle.matrix);
 
         const meshesArray = Array.from(this.enemyMeshes.values());
-        const spacing = 1.5; // Espaçamento maior para evitar sobreposição (Scale 3.0)
+        const spacing = 3.0; // Espaçamento maior para evitar sobreposição (Scale 3.0)
 
         meshesArray.forEach((mesh, index) => {
             const offset = (index - (meshesArray.length - 1) / 2) * spacing;
