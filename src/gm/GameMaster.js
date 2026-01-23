@@ -358,7 +358,7 @@ export class GameMaster {
     /**
      * Narra vitória no combate
      */
-    async anunciarVitoria() {
+    async anunciarVitoria(autoContinuar = false) {
         const frases = [
             "A ameaça foi contida. Por enquanto.",
             "Vitória! Mas não baixem a guarda.",
@@ -367,16 +367,16 @@ export class GameMaster {
         ];
 
         const texto = frases[Math.floor(Math.random() * frases.length)];
-        await this.mostrarDialogo(texto, { tipo: 'vitoria' });
+        await this.mostrarDialogo(texto, { tipo: 'vitoria', autoContinuar });
     }
 
     /**
      * Narra derrota no combate
      */
-    async anunciarDerrota() {
+    async anunciarDerrota(autoContinuar = false) {
         await this.mostrarDialogo(
             "A escuridão venceu desta vez. Mas ainda há esperança. Tentem novamente.",
-            { tipo: 'derrota' }
+            { tipo: 'derrota', autoContinuar }
         );
     }
 

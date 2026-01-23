@@ -391,20 +391,30 @@ class Game {
                 // Limpar todos os inimigos restantes imediatamente
                 this.sceneManager?.limparInimigos();
 
-                await this.gameMaster.anunciarVitoria();
+                // Anunciar vitória (sem bloquear a transição)
+                this.gameMaster.anunciarVitoria(true);
             } else {
                 this.hud.adicionarLog('=== DERROTA ===', 'damage');
 
                 // Som de derrota
                 this.audioManager.tocarAcao('defeat');
 
-                await this.gameMaster.anunciarDerrota();
+                // Anunciar derrota (sem bloquear a transição)
+                this.gameMaster.anunciarDerrota(true);
             }
 
-            // Voltar para home após delay
+            // Voltar para home após delay (garantido)
             setTimeout(() => {
+                // Fechar qualquer diálogo aberto
+                this.gameMaster.continuarDialogo();
                 this.irParaTela('home');
-            }, 3000);
+
+                // Limpar estado do AR se estiver ativo
+                if (this.isARMode && this.arSceneManager) {
+                    this.arSceneManager.stopAR?.();
+                    this.isARMode = false;
+                }
+            }, 3500);
         });
 
         this.combatManager.on('modoSelecaoAlvo', () => {
