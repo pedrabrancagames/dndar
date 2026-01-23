@@ -49,7 +49,7 @@ export class AudioManager {
             { id: 'enemy_turn', path: '/public/sounds/enemy_turn.mp3' },
 
             // AR
-            { id: 'ar_placement', path: '/public/sounds/ar_placement.mp3' }
+            // { id: 'ar_placement', path: '/public/sounds/ar_placement.mp3' } // Agora é música
         ];
 
         // Carregar todos os sons em paralelo
@@ -180,38 +180,53 @@ export class AudioManager {
             case 'defeat':
                 this.tocar('defeat');
                 break;
-            case 'ar_placement':
-                this.tocar('ar_placement');
-                break;
+            // case 'ar_placement':
+            //     this.tocar('ar_placement');
+            //     break;
         }
+    }
+
+    /**
+     * Toca uma música (loop)
+     * Para qualquer música anterior
+     */
+    tocarMusica(path) {
+        if (this.isMuted) return;
+
+        console.log(`[AudioManager] Trocando música para: ${path}`);
+
+        // SEMPRE parar todas as músicas anteriores
+        this.pararMusica();
+
+        // Criar nova instância
+        this.music = new Audio(path);
+        this.music.loop = true;
+        this.music.volume = this.musicVolume;
+
+        // Adicionar à lista de controle
+        this.allMusicInstances.push(this.music);
+
+        this.music.play().then(() => {
+            this.musicPlaying = true;
+            console.log('[AudioManager] Música iniciada com sucesso');
+        }).catch((err) => {
+            console.warn('[AudioManager] Erro ao iniciar música:', err);
+            this.musicPlaying = false;
+        });
     }
 
     /**
      * Inicia a música de combate
      */
     iniciarMusicaCombate() {
-        if (this.isMuted) return;
+        this.tocarMusica('/public/sounds/combat_music.mp3');
+    }
 
-        console.log('[AudioManager] Iniciando música de combate...');
-
-        // SEMPRE parar e destruir TODAS as músicas anteriores primeiro
-        this.pararMusica();
-
-        // Criar nova instância de áudio
-        this.music = new Audio('/public/sounds/combat_music.mp3');
-        this.music.loop = true;
-        this.music.volume = this.musicVolume;
-
-        // Adicionar à lista de instâncias para poder parar depois
-        this.allMusicInstances.push(this.music);
-
-        this.music.play().then(() => {
-            this.musicPlaying = true;
-            console.log('[AudioManager] Música de combate iniciada com sucesso, volume:', this.musicVolume);
-        }).catch((err) => {
-            console.warn('[AudioManager] Erro ao iniciar música:', err);
-            this.musicPlaying = false;
-        });
+    /**
+     * Inicia a música de placement AR
+     */
+    tocarMusicaArPlacement() {
+        this.tocarMusica('/public/sounds/ar_placement.mp3');
     }
 
     /**
@@ -226,9 +241,9 @@ export class AudioManager {
                 if (audioInstance) {
                     audioInstance.pause();
                     audioInstance.currentTime = 0;
-                    audioInstance.src = '';
-                    audioInstance.load();
-                    console.log(`[AudioManager] Instância ${index} parada`);
+                    audioInstance.src = ''; // Release memory
+                    // audioInstance.load(); // Can cause errors if src is empty
+                    console.log(`[AudioManager] Instância ${index} parada e limpa`);
                 }
             } catch (err) {
                 console.error(`[AudioManager] Erro ao parar instância ${index}:`, err);
@@ -237,22 +252,7 @@ export class AudioManager {
 
         // Limpar o array
         this.allMusicInstances = [];
-
-        // Também parar a referência principal se existir
-        if (this.music) {
-            try {
-                this.music.pause();
-                this.music.currentTime = 0;
-                this.music.src = '';
-                this.music.load();
-                this.music = null;
-                console.log('[AudioManager] Música principal parada e destruída');
-            } catch (err) {
-                console.error('[AudioManager] Erro ao parar música principal:', err);
-                this.music = null;
-            }
-        }
-
+        this.music = null;
         this.musicPlaying = false;
     }
 

@@ -263,8 +263,10 @@ class Game {
             this.hud.adicionarLog('Combate iniciado!', 'buff');
             this.hud.atualizar(data);
 
-            // Iniciar música de combate
-            this.audioManager.iniciarMusicaCombate();
+            // Iniciar música de combate (se NÃO estiver em AR, no AR a música começa após posicionamento)
+            if (!this.isARMode) {
+                this.audioManager.iniciarMusicaCombate();
+            }
 
             // Adicionar inimigos à cena
             await this.sceneManager?.adicionarInimigos(
@@ -630,7 +632,7 @@ class Game {
 
             this.arSceneManager.on('enemiesPlaced', () => {
                 this.hud.adicionarLog('Inimigos posicionados em AR!', 'buff');
-                this.audioManager.tocarAcao('ar_placement');
+                this.audioManager.iniciarMusicaCombate();
             });
 
             this.arSceneManager.on('arError', ({ message }) => {
@@ -693,6 +695,10 @@ class Game {
 
         // Mostrar instruções AR
         this.hud.adicionarLog('Aponte para uma superfície plana', 'buff');
+
+        // Tocar música de placement
+        this.audioManager.tocarMusicaArPlacement();
+
         this.hud.adicionarLog('Toque para posicionar inimigos', 'buff');
     }
 
