@@ -108,10 +108,10 @@
 - [x] Desbloquear novas cartas ao subir de nível (níveis 3, 5, 7, 10)
 - [x] Mostrar XP atual e XP necessário para próximo nível
 
-#### Recompensas de Cartas
-- [ ] Criar carta `lunar_strike` (recompensa do boss do Capítulo 1)
-- [ ] Sistema de adicionar cartas novas ao deck do herói
-- [ ] UI para visualizar cartas desbloqueadas
+#### ~~Recompensas de Cartas~~ ✅
+- [x] Criar carta `lunar_strike` (recompensa do boss do Capítulo 1)
+- [x] Sistema de adicionar cartas novas ao deck do herói
+- [x] UI para visualizar cartas desbloqueadas (na tela de Perfil)
 
 #### Fases de Boss
 - [ ] UI para mostrar transição de fase do boss

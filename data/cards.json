@@ -404,6 +404,96 @@
                     "pv_percent": 30
                 }
             }
+        },
+        {
+            "id": "lunar_strike",
+            "nome": "Golpe Lunar",
+            "classe": "Universal",
+            "custoPA": 3,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "🌙",
+            "descricao": "Canaliza o poder da lua cheia para desferir um golpe devastador. Dano extra contra mortos-vivos e licantropos.",
+            "raridade": "lendario",
+            "desbloqueio": "boss_capitulo_1",
+            "efeitos": {
+                "dano": {
+                    "base": 15,
+                    "dados": "3d8"
+                },
+                "condicional": {
+                    "se": "alvo_morto_vivo_ou_licantropo",
+                    "bonus": 10
+                },
+                "status": {
+                    "tipo": "iluminado",
+                    "duracao": 2,
+                    "efeitoExtra": "dano_bonus_aliados"
+                }
+            }
+        },
+        {
+            "id": "shadow_bolt",
+            "nome": "Dardo Sombrio",
+            "classe": "Universal",
+            "custoPA": 2,
+            "tipo": "ataque",
+            "alvo": "inimigo",
+            "icon": "🌑",
+            "descricao": "Dispara um fragmento de escuridão pura que drena a essência do inimigo.",
+            "raridade": "raro",
+            "desbloqueio": "missao",
+            "efeitos": {
+                "dano": {
+                    "base": 8,
+                    "dados": "2d6"
+                },
+                "lifesteal": {
+                    "percent": 25
+                }
+            }
+        },
+        {
+            "id": "blessing_of_valor",
+            "nome": "Bênção de Valor",
+            "classe": "Universal",
+            "custoPA": 2,
+            "tipo": "buff",
+            "alvo": "todos_herois",
+            "icon": "✨",
+            "descricao": "Inspira todos os aliados com coragem inabalável, aumentando ataque e defesa.",
+            "raridade": "epico",
+            "desbloqueio": "missao",
+            "efeitos": {
+                "buff": {
+                    "tipo": "ataque",
+                    "valor": 3,
+                    "duracao": 3
+                },
+                "buff_secundario": {
+                    "tipo": "defesa",
+                    "valor": 2,
+                    "duracao": 3
+                }
+            }
+        },
+        {
+            "id": "spectral_chains",
+            "nome": "Correntes Espectrais",
+            "classe": "Universal",
+            "custoPA": 2,
+            "tipo": "controle",
+            "alvo": "todos_inimigos",
+            "icon": "⛓️",
+            "descricao": "Correntes fantasmagóricas emergem do chão, prendendo todos os inimigos.",
+            "raridade": "raro",
+            "desbloqueio": "missao",
+            "efeitos": {
+                "status": {
+                    "tipo": "paralisado",
+                    "duracao": 1
+                }
+            }
         }
     ]
 }

@@ -454,4 +454,91 @@ export class SaveManager {
         }
         return `${minutos}m`;
     }
+
+    /**
+     * Adiciona uma carta de recompensa a um herói
+     * Cartas universais podem ser adicionadas a qualquer herói
+     */
+    adicionarCartaRecompensa(heroiId, cartaId, saveData) {
+        const heroi = saveData.herois[heroiId];
+        if (!heroi) return { saveData, sucesso: false };
+
+        // Inicializar array de cartas se não existir
+        if (!heroi.cartasDesbloqueadas) {
+            heroi.cartasDesbloqueadas = [];
+        }
+
+        // Inicializar array de cartas de recompensa se não existir
+        if (!saveData.cartasRecompensa) {
+            saveData.cartasRecompensa = [];
+        }
+
+        // Verificar se já tem a carta
+        if (heroi.cartasDesbloqueadas.includes(cartaId)) {
+            return { saveData, sucesso: false, motivo: 'ja_possui' };
+        }
+
+        // Adicionar carta ao herói
+        heroi.cartasDesbloqueadas.push(cartaId);
+
+        // Registrar que a carta foi desbloqueada globalmente
+        if (!saveData.cartasRecompensa.includes(cartaId)) {
+            saveData.cartasRecompensa.push(cartaId);
+        }
+
+        console.log(`[SaveManager] Carta ${cartaId} adicionada ao ${heroiId}`);
+        return { saveData, sucesso: true };
+    }
+
+    /**
+     * Verifica se uma carta de recompensa já foi desbloqueada por qualquer herói
+     */
+    verificarCartaJaDesbloqueada(cartaId, saveData) {
+        // Verificar lista global de cartas de recompensa
+        if (saveData.cartasRecompensa?.includes(cartaId)) {
+            return true;
+        }
+
+        // Verificar em cada herói
+        for (const heroiId of Object.keys(saveData.herois)) {
+            const heroi = saveData.herois[heroiId];
+            if (heroi.cartasDesbloqueadas?.includes(cartaId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtém todas as cartas desbloqueadas de todos os heróis
+     */
+    getTodasCartasDesbloqueadas(saveData) {
+        const todasCartas = new Set();
+
+        for (const heroiId of Object.keys(saveData.herois)) {
+            const heroi = saveData.herois[heroiId];
+            if (heroi.cartasDesbloqueadas) {
+                heroi.cartasDesbloqueadas.forEach(carta => todasCartas.add(carta));
+            }
+        }
+
+        // Adicionar cartas de recompensa globais
+        if (saveData.cartasRecompensa) {
+            saveData.cartasRecompensa.forEach(carta => todasCartas.add(carta));
+        }
+
+        return Array.from(todasCartas);
+    }
+
+    /**
+     * Obtém cartas desbloqueadas por herói específico
+     */
+    getCartasPorHeroi(heroiId, saveData) {
+        const heroi = saveData.herois[heroiId];
+        if (!heroi || !heroi.cartasDesbloqueadas) {
+            return [];
+        }
+        return [...heroi.cartasDesbloqueadas];
+    }
 }

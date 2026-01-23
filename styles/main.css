@@ -3517,3 +3517,426 @@ input[type="range"] {
     padding: var(--space-xs);
   }
 }
+
+/* ============================================
+   Card Reward Modal
+   ============================================ */
+#card-reward-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#card-reward-modal.hidden {
+  display: none;
+}
+
+.card-reward-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.card-reward-content {
+  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
+  border: 2px solid var(--color-accent-primary);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-xl);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 80px rgba(108, 92, 231, 0.4),
+    0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: cardRewardSlideIn 0.6s ease-out;
+}
+
+@keyframes cardRewardSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotateY(20deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateY(0);
+  }
+}
+
+.card-reward-header {
+  position: relative;
+  margin-bottom: var(--space-lg);
+}
+
+.card-reward-sparkles {
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.4) 0%, transparent 70%);
+  animation: sparklesPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sparklesPulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.15);
+  }
+}
+
+.reward-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-accent-gold);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-bottom: var(--space-xs);
+  animation: textPop 0.5s ease-out 0.2s both;
+}
+
+.reward-subtitle {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+/* Card Preview */
+.reward-card-container {
+  perspective: 1000px;
+  margin-bottom: var(--space-lg);
+}
+
+.reward-card {
+  position: relative;
+  width: 160px;
+  height: 220px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.3), rgba(26, 26, 46, 0.9));
+  border: 3px solid var(--color-accent-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: cardFlipIn 0.8s ease-out 0.3s both;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes cardFlipIn {
+  0% {
+    opacity: 0;
+    transform: rotateY(-90deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotateY(0);
+  }
+}
+
+/* Card rarity colors */
+.reward-card[data-rarity="comum"] {
+  border-color: #a0a0a0;
+}
+
+.reward-card[data-rarity="incomum"] {
+  border-color: #2ecc71;
+}
+
+.reward-card[data-rarity="raro"] {
+  border-color: #3498db;
+}
+
+.reward-card[data-rarity="epico"] {
+  border-color: #9b59b6;
+}
+
+.reward-card[data-rarity="lendario"] {
+  border-color: var(--color-accent-gold);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(26, 26, 46, 0.9));
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(255, 215, 0, 0.3);
+}
+
+.reward-card-rarity {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px var(--space-sm);
+  background: var(--color-accent-gold);
+  color: #1a1a2e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--border-radius-sm);
+  letter-spacing: 0.05em;
+}
+
+.reward-card-icon {
+  font-size: 3rem;
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.reward-card-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin-bottom: var(--space-xs);
+}
+
+.reward-card-type {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-sm);
+}
+
+.reward-card-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px var(--space-sm);
+  background: var(--color-pa);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.reward-card-desc {
+  font-size: 0.65rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.3;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+/* Hero Selection */
+.hero-selection {
+  margin-bottom: var(--space-lg);
+  animation: fadeInUp 0.4s ease-out 0.6s both;
+}
+
+.selection-label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.hero-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.hero-select-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hero-select-option:hover {
+  border-color: var(--color-accent-secondary);
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.hero-select-option.selected {
+  border-color: var(--color-accent-gold);
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--color-text-primary);
+}
+
+.hero-option-icon {
+  font-size: 1.5rem;
+}
+
+.hero-option-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Confirm Button */
+.card-reward-confirm {
+  width: 100%;
+  padding: var(--space-md) var(--space-xl);
+  background: linear-gradient(135deg, var(--color-accent-primary), #5a4fcf);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  animation: fadeInUp 0.4s ease-out 0.7s both;
+}
+
+.card-reward-confirm:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(108, 92, 231, 0.5);
+}
+
+.card-reward-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Unlocked Cards Gallery (Profile)
+   ============================================ */
+.cards-section {
+  margin-bottom: var(--space-lg);
+}
+
+.cards-hero-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.cards-tab {
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cards-tab:hover {
+  border-color: var(--color-accent-secondary);
+}
+
+.cards-tab.active {
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  color: white;
+}
+
+.unlocked-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: var(--space-sm);
+}
+
+.unlocked-card-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-sm);
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.unlocked-card-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-accent-secondary);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Rarity borders */
+.unlocked-card-item[data-rarity="comum"] {
+  border-color: #6b6b6b;
+}
+
+.unlocked-card-item[data-rarity="incomum"] {
+  border-color: #2ecc71;
+}
+
+.unlocked-card-item[data-rarity="raro"] {
+  border-color: #3498db;
+}
+
+.unlocked-card-item[data-rarity="epico"] {
+  border-color: #9b59b6;
+}
+
+.unlocked-card-item[data-rarity="lendario"] {
+  border-color: var(--color-accent-gold);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), var(--glass-bg));
+}
+
+.unlocked-card-icon {
+  font-size: 1.8rem;
+  margin-bottom: var(--space-xs);
+}
+
+.unlocked-card-name {
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.unlocked-card-class {
+  font-size: 0.5rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+/* Empty state */
+.no-cards-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-lg);
+}
+
+/* Card reward responsive */
+@media (max-width: 400px) {
+  .card-reward-content {
+    padding: var(--space-lg);
+  }
+
+  .reward-card {
+    width: 140px;
+    height: 200px;
+  }
+
+  .hero-selection-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .reward-card-icon {
+    font-size: 2.5rem;
+  }
+}

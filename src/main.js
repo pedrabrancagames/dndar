@@ -1409,12 +1409,20 @@ class Game {
         // Restaurar heróis
         this.saveData = this.saveManager.restaurarHerois(this.saveData);
 
-        // Salvar
+        // Salvar antes de mostrar modais
         this.saveManager.salvar(this.saveData);
 
         // Mostrar modais de level up sequencialmente
         if (todosLevelUps.length > 0) {
             await this.mostrarLevelUps(todosLevelUps);
+        }
+
+        // Processar carta como recompensa (se houver)
+        if (recompensas.carta) {
+            const jaDesbloqueada = this.saveManager.verificarCartaJaDesbloqueada(recompensas.carta, this.saveData);
+            if (!jaDesbloqueada) {
+                await this.mostrarRecompensaCarta(recompensas.carta);
+            }
         }
     }
 
@@ -1537,6 +1545,132 @@ class Game {
     }
 
     /**
+     * Mostra modal de recompensa de carta
+     */
+    async mostrarRecompensaCarta(cartaId) {
+        // Carregar dados das cartas se não estiver carregado
+        if (!this.cardsData) {
+            try {
+                const response = await fetch('/data/cards.json');
+                this.cardsData = await response.json();
+            } catch (error) {
+                console.error('[Game] Erro ao carregar cartas:', error);
+                return;
+            }
+        }
+
+        // Encontrar dados da carta
+        const carta = this.cardsData.cards.find(c => c.id === cartaId);
+        if (!carta) {
+            console.error('[Game] Carta não encontrada:', cartaId);
+            return;
+        }
+
+        return new Promise((resolve) => {
+            const modal = document.getElementById('card-reward-modal');
+            if (!modal) {
+                resolve();
+                return;
+            }
+
+            // Atualizar elementos do modal
+            const cardPreview = document.getElementById('reward-card-preview');
+            const raridade = carta.raridade || 'comum';
+            cardPreview.dataset.rarity = raridade;
+
+            document.getElementById('reward-card-rarity').textContent = this.traduzirRaridade(raridade);
+            document.getElementById('reward-card-icon').textContent = carta.icon;
+            document.getElementById('reward-card-name').textContent = carta.nome;
+            document.getElementById('reward-card-type').textContent = carta.tipo;
+            document.getElementById('reward-card-cost').textContent = carta.custoPA;
+            document.getElementById('reward-card-desc').textContent = carta.descricao;
+
+            // Resetar seleção de herói
+            let heroiSelecionado = null;
+            const heroButtons = document.querySelectorAll('.hero-select-option');
+            const confirmBtn = document.getElementById('card-reward-confirm');
+
+            heroButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                btn.onclick = () => {
+                    heroButtons.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    heroiSelecionado = btn.dataset.hero;
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = `Dar para ${this.capitalize(heroiSelecionado)}`;
+                };
+            });
+
+            // Resetar botão de confirmar
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Selecione um Herói';
+
+            // Mostrar ou esconder seleção de herói (cartas universais precisam escolher)
+            const heroSelection = document.getElementById('hero-selection');
+            if (carta.classe === 'Universal') {
+                heroSelection.style.display = 'block';
+            } else {
+                // Carta específica de classe - determinar herói automaticamente
+                heroSelection.style.display = 'none';
+                const classeToHeroi = {
+                    'Guerreiro': 'guerreiro',
+                    'Mago': 'mago',
+                    'Ladino': 'ladino',
+                    'Clérigo': 'clerigo'
+                };
+                heroiSelecionado = classeToHeroi[carta.classe] || 'guerreiro';
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Adicionar ao Deck';
+            }
+
+            // Tocar som
+            this.audioManager?.tocarAcao('buff');
+
+            // Mostrar modal
+            modal.classList.remove('hidden');
+
+            // Handler de confirmação
+            const confirmarHandler = () => {
+                if (!heroiSelecionado) return;
+
+                // Adicionar carta ao herói
+                const resultado = this.saveManager.adicionarCartaRecompensa(
+                    heroiSelecionado,
+                    cartaId,
+                    this.saveData
+                );
+
+                if (resultado.sucesso) {
+                    this.saveData = resultado.saveData;
+                    this.saveManager.salvar(this.saveData);
+                    console.log(`[Game] Carta ${cartaId} adicionada ao ${heroiSelecionado}`);
+                }
+
+                // Fechar modal
+                modal.classList.add('hidden');
+                confirmBtn.removeEventListener('click', confirmarHandler);
+                resolve();
+            };
+
+            confirmBtn.addEventListener('click', confirmarHandler);
+        });
+    }
+
+    /**
+     * Traduz raridade para português
+     */
+    traduzirRaridade(raridade) {
+        const traducoes = {
+            'comum': 'Comum',
+            'incomum': 'Incomum',
+            'raro': 'Raro',
+            'epico': 'Épico',
+            'lendario': 'Lendário'
+        };
+        return traducoes[raridade] || raridade;
+    }
+
+    /**
      * Configura callbacks da tela de perfil
      */
     setupProfileCallbacks() {
@@ -1626,6 +1760,10 @@ class Game {
 
         // Renderizar heróis
         this.renderizarHeroisPerfil();
+
+        // Renderizar cartas desbloqueadas
+        this.renderizarCartasDesbloqueadas();
+        this.setupCardsTabs();
 
         // Renderizar conquistas
         this.renderizarConquistas();
@@ -1719,6 +1857,182 @@ class Game {
                 </div>
             `;
         }).join('');
+    }
+
+    /**
+     * Renderiza cartas desbloqueadas na tela de perfil
+     */
+    async renderizarCartasDesbloqueadas(filtroHeroi = 'todos') {
+        const container = document.getElementById('unlocked-cards-grid');
+        if (!container) return;
+
+        // Carregar dados das cartas se necessário
+        if (!this.cardsData) {
+            try {
+                const response = await fetch('/data/cards.json');
+                this.cardsData = await response.json();
+            } catch (error) {
+                console.error('[Game] Erro ao carregar cartas:', error);
+                container.innerHTML = '<p class="no-cards-message">Erro ao carregar cartas</p>';
+                return;
+            }
+        }
+
+        // Obter todas as cartas desbloqueadas
+        let todasCartas = [];
+
+        // Mapear herói -> classe
+        const heroiToClasse = {
+            'guerreiro': 'Guerreiro',
+            'mago': 'Mago',
+            'ladino': 'Ladino',
+            'clerigo': 'Clérigo'
+        };
+
+        // Coletar cartas por herói
+        Object.keys(this.saveData.herois).forEach(heroiId => {
+            const cartasHeroi = this.saveData.herois[heroiId].cartasDesbloqueadas || [];
+            cartasHeroi.forEach(cartaId => {
+                const cartaData = this.cardsData.cards.find(c => c.id === cartaId);
+                if (cartaData && !todasCartas.find(c => c.id === cartaId)) {
+                    todasCartas.push({
+                        ...cartaData,
+                        heroiId: heroiId
+                    });
+                }
+            });
+        });
+
+        // Aplicar filtro
+        let cartasFiltradas = todasCartas;
+        if (filtroHeroi !== 'todos') {
+            if (filtroHeroi === 'universal') {
+                cartasFiltradas = todasCartas.filter(c => c.classe === 'Universal');
+            } else {
+                const classeHeroi = heroiToClasse[filtroHeroi];
+                cartasFiltradas = todasCartas.filter(c =>
+                    c.classe === classeHeroi || c.heroiId === filtroHeroi
+                );
+            }
+        }
+
+        // Ordenar por tipo e raridade
+        const raridadeOrdem = { 'lendario': 5, 'epico': 4, 'raro': 3, 'incomum': 2, 'comum': 1 };
+        cartasFiltradas.sort((a, b) => {
+            const raridadeA = raridadeOrdem[a.raridade] || 1;
+            const raridadeB = raridadeOrdem[b.raridade] || 1;
+            return raridadeB - raridadeA;
+        });
+
+        // Renderizar
+        if (cartasFiltradas.length === 0) {
+            container.innerHTML = '<p class="no-cards-message">Nenhuma carta desbloqueada nesta categoria</p>';
+            return;
+        }
+
+        container.innerHTML = cartasFiltradas.map(carta => {
+            const raridade = carta.raridade || 'comum';
+            return `
+                <div class="unlocked-card-item" data-id="${carta.id}" data-rarity="${raridade}">
+                    <span class="unlocked-card-icon">${carta.icon}</span>
+                    <span class="unlocked-card-name">${carta.nome}</span>
+                    <span class="unlocked-card-class">${carta.classe}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Adicionar tooltips/clique para ver detalhes
+        container.querySelectorAll('.unlocked-card-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const cartaId = item.dataset.id;
+                const carta = this.cardsData.cards.find(c => c.id === cartaId);
+                if (carta) {
+                    this.mostrarDetalheCarta(carta);
+                }
+            });
+        });
+    }
+
+    /**
+     * Mostra detalhe de uma carta (tooltip/modal simples)
+     */
+    mostrarDetalheCarta(carta) {
+        // Criar tooltip temporário
+        const tooltip = document.createElement('div');
+        tooltip.className = 'card-tooltip';
+        tooltip.innerHTML = `
+            <div class="tooltip-header">
+                <span class="tooltip-icon">${carta.icon}</span>
+                <span class="tooltip-name">${carta.nome}</span>
+            </div>
+            <div class="tooltip-info">
+                <span class="tooltip-type">${carta.tipo}</span>
+                <span class="tooltip-cost">${carta.custoPA} PA</span>
+            </div>
+            <p class="tooltip-desc">${carta.descricao}</p>
+            <span class="tooltip-close">Toque para fechar</span>
+        `;
+        tooltip.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #12121a, #1a1a2e);
+            border: 2px solid ${this.getRaridadeColor(carta.raridade || 'comum')};
+            border-radius: 12px;
+            padding: 20px;
+            z-index: 2000;
+            max-width: 280px;
+            text-align: center;
+            color: #f5f6fa;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        `;
+
+        document.body.appendChild(tooltip);
+
+        // Fechar ao clicar
+        tooltip.addEventListener('click', () => {
+            tooltip.remove();
+        });
+
+        // Auto-fechar após 5s
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.remove();
+            }
+        }, 5000);
+    }
+
+    /**
+     * Retorna cor baseada na raridade
+     */
+    getRaridadeColor(raridade) {
+        const cores = {
+            'comum': '#a0a0a0',
+            'incomum': '#2ecc71',
+            'raro': '#3498db',
+            'epico': '#9b59b6',
+            'lendario': '#ffd700'
+        };
+        return cores[raridade] || cores.comum;
+    }
+
+    /**
+     * Configura tabs de filtro de cartas
+     */
+    setupCardsTabs() {
+        const tabs = document.querySelectorAll('.cards-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Atualizar estado ativo
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Renderizar cartas filtradas
+                const filtro = tab.dataset.hero;
+                this.renderizarCartasDesbloqueadas(filtro);
+            });
+        });
     }
 
     /**

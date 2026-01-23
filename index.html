@@ -517,6 +517,22 @@
           </div>
         </section>
 
+        <!-- Unlocked Cards -->
+        <section class="profile-section cards-section">
+          <h3>🃏 Cartas Desbloqueadas</h3>
+          <div class="cards-hero-tabs">
+            <button class="cards-tab active" data-hero="todos">Todas</button>
+            <button class="cards-tab" data-hero="guerreiro">⚔️</button>
+            <button class="cards-tab" data-hero="mago">🔮</button>
+            <button class="cards-tab" data-hero="ladino">🗡️</button>
+            <button class="cards-tab" data-hero="clerigo">✝️</button>
+            <button class="cards-tab" data-hero="universal">🌟</button>
+          </div>
+          <div class="unlocked-cards-grid" id="unlocked-cards-grid">
+            <!-- Cards will be populated by JavaScript -->
+          </div>
+        </section>
+
         <!-- Achievements -->
         <section class="profile-section achievements-section">
           <h3>🏅 Conquistas</h3>
@@ -739,6 +755,64 @@
 
         <!-- Continue Button -->
         <button class="level-up-continue" id="level-up-continue">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Reward Modal -->
+  <div id="card-reward-modal" class="modal hidden">
+    <div class="card-reward-overlay">
+      <div class="card-reward-content">
+        <!-- Header -->
+        <div class="card-reward-header">
+          <div class="card-reward-sparkles"></div>
+          <span class="reward-title">🎴 Nova Carta!</span>
+          <span class="reward-subtitle">Você desbloqueou uma carta especial</span>
+        </div>
+
+        <!-- Card Preview -->
+        <div class="reward-card-container">
+          <div class="reward-card" id="reward-card-preview">
+            <div class="reward-card-rarity" id="reward-card-rarity">Lendário</div>
+            <div class="reward-card-icon" id="reward-card-icon">🌙</div>
+            <div class="reward-card-name" id="reward-card-name">Golpe Lunar</div>
+            <div class="reward-card-type" id="reward-card-type">Ataque</div>
+            <div class="reward-card-cost">
+              <span id="reward-card-cost">3</span> PA
+            </div>
+            <div class="reward-card-desc" id="reward-card-desc">
+              Descrição da carta...
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Selection (for universal cards) -->
+        <div class="hero-selection" id="hero-selection">
+          <p class="selection-label">Escolha qual herói receberá esta carta:</p>
+          <div class="hero-selection-grid">
+            <button class="hero-select-option" data-hero="guerreiro">
+              <span class="hero-option-icon">⚔️</span>
+              <span class="hero-option-name">Guerreiro</span>
+            </button>
+            <button class="hero-select-option" data-hero="mago">
+              <span class="hero-option-icon">🔮</span>
+              <span class="hero-option-name">Mago</span>
+            </button>
+            <button class="hero-select-option" data-hero="ladino">
+              <span class="hero-option-icon">🗡️</span>
+              <span class="hero-option-name">Ladino</span>
+            </button>
+            <button class="hero-select-option" data-hero="clerigo">
+              <span class="hero-option-icon">✝️</span>
+              <span class="hero-option-name">Clérigo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Button -->
+        <button class="card-reward-confirm" id="card-reward-confirm" disabled>
+          Selecione um Herói
+        </button>
       </div>
     </div>
   </div>
