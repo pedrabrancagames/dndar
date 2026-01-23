@@ -3968,3 +3968,872 @@ input[type="range"] {
     font-size: 2.5rem;
   }
 }
+
+/* ============================================
+   Game Master Screen
+   ============================================ */
+#gm-screen {
+  background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%);
+  overflow-y: auto;
+}
+
+.gm-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  padding-bottom: var(--space-xl);
+}
+
+.gm-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.gm-header h2 {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--color-accent-gold);
+}
+
+/* GM Tabs */
+.gm-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  background: var(--color-bg-secondary);
+  padding: var(--space-xs);
+  border-radius: var(--border-radius-lg);
+}
+
+.gm-tab {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-tab:hover {
+  color: var(--color-text-primary);
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.gm-tab.active {
+  background: var(--color-accent-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* GM Content */
+.gm-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.gm-content.hidden {
+  display: none;
+}
+
+/* GM Sections */
+.gm-section {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+}
+
+.gm-section h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* Intro Card */
+.gm-intro-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.gm-intro-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.gm-intro-text h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--color-accent-gold);
+  margin-bottom: var(--space-xs);
+}
+
+.gm-intro-text p {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* Chapters List */
+.chapters-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.chapter-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chapter-item:hover {
+  background: rgba(108, 92, 231, 0.1);
+  transform: translateX(4px);
+}
+
+.chapter-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chapter-item.locked:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.chapter-status {
+  font-size: 1.2rem;
+  width: 32px;
+  text-align: center;
+}
+
+.chapter-info {
+  flex: 1;
+}
+
+.chapter-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.chapter-progress-text {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Bestiário */
+.bestiary-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.bestiary-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.bestiary-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+  border-radius: var(--border-radius-lg);
+  transition: width var(--transition-normal);
+}
+
+#bestiary-count {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.bestiary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: var(--space-sm);
+}
+
+.bestiary-creature {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.bestiary-creature:hover {
+  background: rgba(108, 92, 231, 0.2);
+  border-color: var(--color-accent-secondary);
+  transform: scale(1.05);
+}
+
+.bestiary-creature.locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bestiary-creature.locked:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.2);
+  border-color: var(--glass-border);
+}
+
+.bestiary-creature-icon {
+  font-size: 1.5rem;
+}
+
+.bestiary-creature-name {
+  font-size: 0.5rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--space-xs);
+}
+
+/* Heroes Lore Grid */
+.heroes-lore-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.hero-lore-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hero-lore-card:hover {
+  background: rgba(108, 92, 231, 0.2);
+  border-color: var(--color-accent-secondary);
+  transform: translateY(-2px);
+}
+
+.hero-lore-icon {
+  font-size: 2rem;
+}
+
+.hero-lore-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.hero-lore-title {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* GM Settings */
+.gm-setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gm-setting-item:last-child {
+  border-bottom: none;
+}
+
+.gm-setting-item label {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+/* Toggle Switch */
+.toggle-switch-container {
+  position: relative;
+  width: 50px;
+  height: 26px;
+}
+
+.toggle-switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--color-bg-secondary);
+  border-radius: 26px;
+  transition: var(--transition-fast);
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: var(--transition-fast);
+}
+
+.toggle-switch-container input:checked+.toggle-slider {
+  background-color: var(--color-accent-primary);
+}
+
+.toggle-switch-container input:checked+.toggle-slider::before {
+  transform: translateX(24px);
+}
+
+/* Range Container */
+.gm-range-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.gm-range-container input[type="range"] {
+  width: 100px;
+  accent-color: var(--color-accent-primary);
+}
+
+.gm-range-value {
+  font-size: 0.8rem;
+  color: var(--color-accent-secondary);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Test Voice Button */
+.gm-test-voice-btn {
+  width: 100%;
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+  background: rgba(108, 92, 231, 0.2);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-accent-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-test-voice-btn:hover {
+  background: var(--color-accent-primary);
+  color: white;
+}
+
+/* Style Options */
+.gm-style-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.gm-style-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-style-option:hover {
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.gm-style-option:has(input:checked) {
+  border-color: var(--color-accent-primary);
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.gm-style-option input {
+  display: none;
+}
+
+.style-icon {
+  font-size: 1.5rem;
+}
+
+.style-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.style-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+/* Save Button */
+.gm-save-btn {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(135deg, var(--color-accent-primary), #5a4fcf);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-save-btn:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-glow);
+}
+
+/* GM Avatar Section */
+.gm-avatar-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.gm-avatar-frame {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-accent-gold);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gm-avatar-icon {
+  font-size: 2.5rem;
+}
+
+.gm-avatar-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+  animation: avatarGlow 2s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.gm-avatar-info h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--color-accent-gold);
+  margin-bottom: var(--space-xs);
+}
+
+.gm-avatar-quote {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Briefing Card */
+.gm-briefing-card {
+  background: rgba(0, 0, 0, 0.2);
+  padding: var(--space-md);
+  border-radius: var(--border-radius-md);
+}
+
+.briefing-chapter {
+  font-size: 0.8rem;
+  color: var(--color-accent-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.briefing-text {
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  font-style: italic;
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.gm-play-briefing-btn {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(108, 92, 231, 0.2);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-accent-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-play-briefing-btn:hover {
+  background: var(--color-accent-primary);
+  color: white;
+}
+
+/* Tips List */
+.gm-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.gm-tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid var(--color-accent-primary);
+}
+
+.tip-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.gm-tip-card p {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Quick Combat Button */
+.gm-quick-combat-btn {
+  width: 100%;
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, var(--color-accent-fire), #e55d2b);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gm-quick-combat-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+}
+
+.gm-quick-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+
+/* ============================================
+   Hero Lore Modal
+   ============================================ */
+.hero-lore-overlay,
+.creature-modal-overlay,
+.chapter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  z-index: 1000;
+}
+
+.hero-lore-content,
+.creature-modal-content,
+.chapter-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-xl);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* Hero Lore Modal Specific */
+.hero-lore-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.hero-lore-portrait {
+  width: 70px;
+  height: 70px;
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-accent-gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.hero-lore-title-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--color-accent-gold);
+}
+
+.hero-lore-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.hero-lore-body p {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+/* Creature Modal Specific */
+.creature-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.creature-icon {
+  font-size: 3rem;
+}
+
+.creature-title h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--color-accent-fire);
+}
+
+.creature-type {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.creature-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.creature-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-sm);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-md);
+}
+
+.creature-stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.creature-stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.creature-description {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  font-style: italic;
+  margin-bottom: var(--space-md);
+}
+
+.creature-defeated-count {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-md);
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Chapter Modal Specific */
+.chapter-header {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.chapter-number {
+  font-size: 0.9rem;
+  color: var(--color-accent-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.chapter-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-accent-gold);
+  margin-top: var(--space-xs);
+}
+
+.chapter-body {
+  margin-bottom: var(--space-lg);
+}
+
+.chapter-body p {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.chapter-missions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--glass-border);
+}
+
+.chapter-mission-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.chapter-mission-item.completed {
+  color: var(--color-success);
+}
+
+/* Responsive for GM Screen */
+@media (max-width: 400px) {
+  .gm-tabs {
+    flex-wrap: wrap;
+  }
+
+  .gm-tab {
+    font-size: 0.75rem;
+    padding: var(--space-sm);
+  }
+
+  .heroes-lore-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xs);
+  }
+
+  .hero-lore-card {
+    padding: var(--space-sm);
+  }
+
+  .hero-lore-icon {
+    font-size: 1.5rem;
+  }
+
+  .gm-avatar-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .creature-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

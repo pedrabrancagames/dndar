@@ -759,6 +759,304 @@
     </div>
   </div>
 
+  <!-- Game Master Screen -->
+  <div id="gm-screen" class="screen">
+    <div class="gm-container">
+      <header class="gm-header">
+        <button class="back-btn" id="gm-back">← Voltar</button>
+        <h2>📖 Game Master</h2>
+      </header>
+
+      <!-- GM Tabs -->
+      <div class="gm-tabs">
+        <button class="gm-tab active" data-tab="cronicas">📜 Crônicas</button>
+        <button class="gm-tab" data-tab="config">⚙️ Config</button>
+        <button class="gm-tab" data-tab="mestre">🎭 Mestre</button>
+      </div>
+
+      <!-- Tab: Crônicas -->
+      <div class="gm-content" id="gm-cronicas-tab">
+        <!-- Intro -->
+        <section class="gm-section intro-section">
+          <div class="gm-intro-card">
+            <div class="gm-intro-icon">🏛️</div>
+            <div class="gm-intro-text">
+              <h3>Bairro Esquecido</h3>
+              <p>Conheça a história deste lugar amaldiçoado e as criaturas que o habitam...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Capítulos Desbloqueados -->
+        <section class="gm-section chapters-section">
+          <h3>📚 Capítulos</h3>
+          <div class="chapters-list" id="gm-chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+          </div>
+        </section>
+
+        <!-- Bestiário -->
+        <section class="gm-section bestiary-section">
+          <h3>👹 Bestiário</h3>
+          <div class="bestiary-progress">
+            <div class="bestiary-bar">
+              <div class="bestiary-fill" id="bestiary-fill" style="width: 0%"></div>
+            </div>
+            <span id="bestiary-count">0/0 criaturas descobertas</span>
+          </div>
+          <div class="bestiary-grid" id="bestiary-grid">
+            <!-- Creatures will be populated by JavaScript -->
+          </div>
+        </section>
+
+        <!-- Heróis Lore -->
+        <section class="gm-section heroes-lore-section">
+          <h3>🦸 Biografias dos Heróis</h3>
+          <div class="heroes-lore-grid" id="heroes-lore-grid">
+            <div class="hero-lore-card" data-hero="guerreiro">
+              <span class="hero-lore-icon">⚔️</span>
+              <span class="hero-lore-name">Guerreiro</span>
+              <span class="hero-lore-title">O Protetor</span>
+            </div>
+            <div class="hero-lore-card" data-hero="mago">
+              <span class="hero-lore-icon">🔮</span>
+              <span class="hero-lore-name">Mago</span>
+              <span class="hero-lore-title">O Erudito</span>
+            </div>
+            <div class="hero-lore-card" data-hero="ladino">
+              <span class="hero-lore-icon">🗡️</span>
+              <span class="hero-lore-name">Ladino</span>
+              <span class="hero-lore-title">A Sombra</span>
+            </div>
+            <div class="hero-lore-card" data-hero="clerigo">
+              <span class="hero-lore-icon">✝️</span>
+              <span class="hero-lore-name">Clérigo</span>
+              <span class="hero-lore-title">O Curador</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tab: Config -->
+      <div class="gm-content hidden" id="gm-config-tab">
+        <section class="gm-section">
+          <h3>🔊 Narração</h3>
+          
+          <div class="gm-setting-item">
+            <label for="gm-voice-enabled">Voz Habilitada</label>
+            <div class="toggle-switch-container">
+              <input type="checkbox" id="gm-voice-enabled" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+
+          <div class="gm-setting-item">
+            <label for="gm-speech-rate">Velocidade da Fala</label>
+            <div class="gm-range-container">
+              <input type="range" id="gm-speech-rate" min="0.5" max="1.5" step="0.1" value="0.9">
+              <span class="gm-range-value" id="gm-speech-rate-value">0.9x</span>
+            </div>
+          </div>
+
+          <div class="gm-setting-item">
+            <label for="gm-voice-volume">Volume da Voz</label>
+            <div class="gm-range-container">
+              <input type="range" id="gm-voice-volume" min="0" max="1" step="0.1" value="1">
+              <span class="gm-range-value" id="gm-voice-volume-value">100%</span>
+            </div>
+          </div>
+
+          <button class="gm-test-voice-btn" id="gm-test-voice">
+            🔊 Testar Voz
+          </button>
+        </section>
+
+        <section class="gm-section">
+          <h3>📜 Narrativa</h3>
+
+          <div class="gm-setting-item">
+            <label for="gm-extended-dialogues">Diálogos Extensos</label>
+            <div class="toggle-switch-container">
+              <input type="checkbox" id="gm-extended-dialogues" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+
+          <div class="gm-setting-item">
+            <label for="gm-combat-tips">Dicas de Combate</label>
+            <div class="toggle-switch-container">
+              <input type="checkbox" id="gm-combat-tips" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+
+          <div class="gm-setting-item">
+            <label for="gm-random-comments">Comentários Aleatórios</label>
+            <div class="toggle-switch-container">
+              <input type="checkbox" id="gm-random-comments">
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="gm-section">
+          <h3>🎲 Estilo do Mestre</h3>
+          <div class="gm-style-options">
+            <label class="gm-style-option">
+              <input type="radio" name="gm-style" value="epico" checked>
+              <span class="style-icon">⚔️</span>
+              <span class="style-name">Épico</span>
+              <span class="style-desc">Dramático e intenso</span>
+            </label>
+            <label class="gm-style-option">
+              <input type="radio" name="gm-style" value="humoristico">
+              <span class="style-icon">😄</span>
+              <span class="style-name">Humorístico</span>
+              <span class="style-desc">Leve e divertido</span>
+            </label>
+            <label class="gm-style-option">
+              <input type="radio" name="gm-style" value="misterioso">
+              <span class="style-icon">🌙</span>
+              <span class="style-name">Misterioso</span>
+              <span class="style-desc">Sombrio e enigmático</span>
+            </label>
+          </div>
+        </section>
+
+        <button class="gm-save-btn" id="gm-save-config">💾 Salvar Configurações</button>
+      </div>
+
+      <!-- Tab: Mestre -->
+      <div class="gm-content hidden" id="gm-mestre-tab">
+        <!-- GM Avatar -->
+        <section class="gm-section gm-avatar-section">
+          <div class="gm-avatar-card">
+            <div class="gm-avatar-frame">
+              <div class="gm-avatar-icon">📖</div>
+              <div class="gm-avatar-glow"></div>
+            </div>
+            <div class="gm-avatar-info">
+              <h3>Mestre das Crônicas</h3>
+              <p class="gm-avatar-quote" id="gm-avatar-quote">"Bem-vindo, aventureiro. Sua jornada apenas começou..."</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Último Briefing -->
+        <section class="gm-section">
+          <h3>🎬 Último Briefing</h3>
+          <div class="gm-briefing-card" id="gm-last-briefing">
+            <div class="briefing-chapter">Capítulo 1 - Missão 1</div>
+            <p class="briefing-text">"A escuridão se aproxima do Bairro Esquecido..."</p>
+            <button class="gm-play-briefing-btn" id="gm-play-briefing">
+              ▶️ Reproduzir Novamente
+            </button>
+          </div>
+        </section>
+
+        <!-- Dicas do Mestre -->
+        <section class="gm-section">
+          <h3>💡 Dicas do Mestre</h3>
+          <div class="gm-tips-list" id="gm-tips-list">
+            <div class="gm-tip-card">
+              <span class="tip-icon">⚔️</span>
+              <p>Use o Guerreiro para proteger aliados com baixa vida.</p>
+            </div>
+            <div class="gm-tip-card">
+              <span class="tip-icon">🔮</span>
+              <p>O Mago causa mais dano em área - agrupe os inimigos!</p>
+            </div>
+            <div class="gm-tip-card">
+              <span class="tip-icon">🗡️</span>
+              <p>O Ladino ganha bônus de dano contra inimigos distraídos.</p>
+            </div>
+            <div class="gm-tip-card">
+              <span class="tip-icon">✝️</span>
+              <p>Mantenha o Clérigo vivo - ele é essencial para curas!</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Iniciar Combate Rápido -->
+        <section class="gm-section">
+          <h3>⚡ Ação Rápida</h3>
+          <button class="gm-quick-combat-btn" id="gm-quick-combat">
+            ⚔️ Iniciar Combate Rápido
+          </button>
+          <p class="gm-quick-desc">Inicie um combate de teste com briefing narrativo</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Lore Modal -->
+  <div id="hero-lore-modal" class="modal hidden">
+    <div class="hero-lore-overlay">
+      <div class="hero-lore-content">
+        <button class="modal-close-btn" id="close-hero-lore">✕</button>
+        <div class="hero-lore-header">
+          <div class="hero-lore-portrait" id="hero-lore-portrait">⚔️</div>
+          <div class="hero-lore-title-section">
+            <h2 id="hero-lore-name">Guerreiro</h2>
+            <span class="hero-lore-subtitle" id="hero-lore-subtitle">O Protetor</span>
+          </div>
+        </div>
+        <div class="hero-lore-body">
+          <p id="hero-lore-description">
+            História do herói...
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Creature Info Modal -->
+  <div id="creature-modal" class="modal hidden">
+    <div class="creature-modal-overlay">
+      <div class="creature-modal-content">
+        <button class="modal-close-btn" id="close-creature-modal">✕</button>
+        <div class="creature-header">
+          <span class="creature-icon" id="creature-icon">👹</span>
+          <div class="creature-title">
+            <h2 id="creature-name">Criatura</h2>
+            <span class="creature-type" id="creature-type">Tipo</span>
+          </div>
+        </div>
+        <div class="creature-stats" id="creature-stats">
+          <!-- Stats populated by JS -->
+        </div>
+        <p class="creature-description" id="creature-description">
+          Descrição da criatura...
+        </p>
+        <div class="creature-defeated-count">
+          <span>💀 Derrotados:</span>
+          <span id="creature-defeated-count">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter Summary Modal -->
+  <div id="chapter-modal" class="modal hidden">
+    <div class="chapter-modal-overlay">
+      <div class="chapter-modal-content">
+        <button class="modal-close-btn" id="close-chapter-modal">✕</button>
+        <div class="chapter-header">
+          <span class="chapter-number" id="chapter-number">Capítulo 1</span>
+          <h2 id="chapter-title">O Despertar</h2>
+        </div>
+        <div class="chapter-body">
+          <p id="chapter-summary">
+            Resumo do capítulo...
+          </p>
+        </div>
+        <div class="chapter-missions" id="chapter-missions">
+          <!-- Mission list populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Card Reward Modal -->
   <div id="card-reward-modal" class="modal hidden">
     <div class="card-reward-overlay">

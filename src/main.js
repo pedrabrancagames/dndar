@@ -91,6 +91,7 @@ class Game {
         this.setupMapCallbacks();
         this.setupProfileCallbacks();
         this.setupInventoryCallbacks();
+        this.setupGMScreenCallbacks();
 
         this.atualizarLoading(85, 'Carregando sons...');
 
@@ -148,7 +149,10 @@ class Game {
     setupEventListeners() {
         // Menu principal - Combate será configurado em setupMissionCallbacks
         // NÃO adicionar listener para btnCombat aqui para evitar duplicação
-        this.elementos.btnGameMaster?.addEventListener('click', () => this.mostrarBriefing());
+        this.elementos.btnGameMaster?.addEventListener('click', () => {
+            this.irParaTela('gm');
+            this.renderizarTelaGM();
+        });
         this.elementos.btnMap?.addEventListener('click', () => {
             this.irParaTela('map');
             this.renderizarMapa();
@@ -2683,6 +2687,527 @@ class Game {
      */
     capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // ============================================
+    // TELA DO GAME MASTER
+    // ============================================
+
+    /**
+     * Configura callbacks da tela do Game Master
+     */
+    setupGMScreenCallbacks() {
+        // Botão voltar
+        document.getElementById('gm-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+        });
+
+        // Tabs
+        document.querySelectorAll('.gm-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.mudarTabGM(tab.dataset.tab);
+            });
+        });
+
+        // Configurações de voz
+        document.getElementById('gm-voice-enabled')?.addEventListener('change', (e) => {
+            this.gameMaster.setVoiceEnabled(e.target.checked);
+        });
+
+        document.getElementById('gm-speech-rate')?.addEventListener('input', (e) => {
+            const rate = parseFloat(e.target.value);
+            this.gameMaster.setSpeechRate(rate);
+            document.getElementById('gm-speech-rate-value').textContent = `${rate}x`;
+        });
+
+        document.getElementById('gm-voice-volume')?.addEventListener('input', (e) => {
+            const volume = parseFloat(e.target.value);
+            this.gameMaster.setVolume(volume);
+            document.getElementById('gm-voice-volume-value').textContent = `${Math.round(volume * 100)}%`;
+        });
+
+        // Testar voz
+        document.getElementById('gm-test-voice')?.addEventListener('click', () => {
+            this.testarVozGM();
+        });
+
+        // Salvar configurações
+        document.getElementById('gm-save-config')?.addEventListener('click', () => {
+            this.salvarConfiguracoesGM();
+        });
+
+        // Reproduzir briefing
+        document.getElementById('gm-play-briefing')?.addEventListener('click', () => {
+            this.reproduzirUltimoBriefing();
+        });
+
+        // Combate rápido
+        document.getElementById('gm-quick-combat')?.addEventListener('click', () => {
+            this.mostrarBriefing();
+        });
+
+        // Cards de heróis lore
+        document.querySelectorAll('.hero-lore-card').forEach(card => {
+            card.addEventListener('click', () => {
+                this.mostrarHeroLore(card.dataset.hero);
+            });
+        });
+
+        // Fechar modais
+        document.getElementById('close-hero-lore')?.addEventListener('click', () => {
+            document.getElementById('hero-lore-modal')?.classList.add('hidden');
+        });
+
+        document.getElementById('close-creature-modal')?.addEventListener('click', () => {
+            document.getElementById('creature-modal')?.classList.add('hidden');
+        });
+
+        document.getElementById('close-chapter-modal')?.addEventListener('click', () => {
+            document.getElementById('chapter-modal')?.classList.add('hidden');
+        });
+
+        // Fechar modais ao clicar fora
+        ['hero-lore-modal', 'creature-modal', 'chapter-modal'].forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            modal?.addEventListener('click', (e) => {
+                if (e.target.classList.contains('hero-lore-overlay') ||
+                    e.target.classList.contains('creature-modal-overlay') ||
+                    e.target.classList.contains('chapter-modal-overlay')) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    /**
+     * Renderiza a tela do Game Master
+     */
+    renderizarTelaGM() {
+        this.renderizarCapitulosGM();
+        this.renderizarBestiario();
+        this.carregarConfiguracoesGM();
+        this.atualizarQuoteGM();
+        this.atualizarUltimoBriefing();
+    }
+
+    /**
+     * Muda a tab ativa do GM
+     */
+    mudarTabGM(tabName) {
+        // Atualizar tabs
+        document.querySelectorAll('.gm-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+
+        // Atualizar conteúdo
+        document.getElementById('gm-cronicas-tab')?.classList.toggle('hidden', tabName !== 'cronicas');
+        document.getElementById('gm-config-tab')?.classList.toggle('hidden', tabName !== 'config');
+        document.getElementById('gm-mestre-tab')?.classList.toggle('hidden', tabName !== 'mestre');
+    }
+
+    /**
+     * Renderiza a lista de capítulos
+     */
+    renderizarCapitulosGM() {
+        const container = document.getElementById('gm-chapters-list');
+        if (!container) return;
+
+        const capitulos = [
+            { numero: 1, nome: 'O Despertar', missoes: 5 },
+            { numero: 2, nome: 'A Expansão da Ameaça', missoes: 5 },
+            { numero: 3, nome: 'A Origem', missoes: 5 },
+            { numero: 4, nome: 'A Entidade', missoes: 5 },
+            { numero: 5, nome: 'O Confronto', missoes: 5 }
+        ];
+
+        const capituloAtual = this.saveData?.campanha?.capitulo || 1;
+        const missaoAtual = this.saveData?.campanha?.missao || 1;
+
+        container.innerHTML = capitulos.map((cap, index) => {
+            const desbloqueado = cap.numero <= capituloAtual;
+            const completo = cap.numero < capituloAtual;
+            const missoesCompletas = completo ? cap.missoes : (cap.numero === capituloAtual ? missaoAtual - 1 : 0);
+
+            let status = '🔒';
+            if (completo) status = '✅';
+            else if (desbloqueado) status = '📖';
+
+            return `
+                <div class="chapter-item ${!desbloqueado ? 'locked' : ''}" data-chapter="${cap.numero}">
+                    <span class="chapter-status">${status}</span>
+                    <div class="chapter-info">
+                        <span class="chapter-name">Capítulo ${cap.numero}: ${cap.nome}</span>
+                        <span class="chapter-progress-text">${missoesCompletas}/${cap.missoes} missões</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Event listeners para capítulos desbloqueados
+        container.querySelectorAll('.chapter-item:not(.locked)').forEach(item => {
+            item.addEventListener('click', () => {
+                this.mostrarChapterModal(parseInt(item.dataset.chapter));
+            });
+        });
+    }
+
+    /**
+     * Renderiza o bestiário
+     */
+    renderizarBestiario() {
+        const container = document.getElementById('bestiary-grid');
+        if (!container) return;
+
+        // Lista de criaturas do jogo
+        const criaturas = [
+            { id: 'goblin', nome: 'Goblin', icon: '👺', tipo: 'Humanoide' },
+            { id: 'rato_gigante', nome: 'Rato Gigante', icon: '🐀', tipo: 'Besta' },
+            { id: 'esqueleto', nome: 'Esqueleto', icon: '💀', tipo: 'Morto-vivo' },
+            { id: 'zumbi', nome: 'Zumbi', icon: '🧟', tipo: 'Morto-vivo' },
+            { id: 'orc', nome: 'Orc', icon: '👹', tipo: 'Humanoide' },
+            { id: 'kobold', nome: 'Kobold', icon: '🦎', tipo: 'Humanoide' },
+            { id: 'lobo', nome: 'Lobo', icon: '🐺', tipo: 'Besta' },
+            { id: 'ghoul', nome: 'Ghoul', icon: '👻', tipo: 'Morto-vivo' },
+            { id: 'troll', nome: 'Troll', icon: '🧌', tipo: 'Gigante' },
+            { id: 'ogro', nome: 'Ogro', icon: '👿', tipo: 'Gigante' },
+            { id: 'mimic', nome: 'Mímico', icon: '📦', tipo: 'Monstruosidade' },
+            { id: 'beholder', nome: 'Contemplador', icon: '👁️', tipo: 'Aberração' },
+            { id: 'giant_spider', nome: 'Aranha Gigante', icon: '🕷️', tipo: 'Besta' },
+            { id: 'shadow', nome: 'Sombra', icon: '👤', tipo: 'Morto-vivo' }
+        ];
+
+        // Criaturas descobertas (derrotadas)
+        const derrotados = this.saveData?.estatisticas?.inimigosDerrotados || {};
+        const descobertas = Object.keys(derrotados);
+
+        // Atualizar progresso
+        const fillEl = document.getElementById('bestiary-fill');
+        const countEl = document.getElementById('bestiary-count');
+        const percent = (descobertas.length / criaturas.length) * 100;
+
+        if (fillEl) fillEl.style.width = `${percent}%`;
+        if (countEl) countEl.textContent = `${descobertas.length}/${criaturas.length} criaturas descobertas`;
+
+        container.innerHTML = criaturas.map(criatura => {
+            const descoberta = descobertas.includes(criatura.id);
+            return `
+                <div class="bestiary-creature ${!descoberta ? 'locked' : ''}" data-id="${criatura.id}">
+                    <span class="bestiary-creature-icon">${descoberta ? criatura.icon : '❓'}</span>
+                    <span class="bestiary-creature-name">${descoberta ? criatura.nome : '???'}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Event listeners para criaturas descobertas
+        container.querySelectorAll('.bestiary-creature:not(.locked)').forEach(item => {
+            item.addEventListener('click', () => {
+                this.mostrarCreatureModal(item.dataset.id);
+            });
+        });
+    }
+
+    /**
+     * Carrega as configurações do GM na UI
+     */
+    carregarConfiguracoesGM() {
+        const config = this.gameMaster.getConfig();
+
+        const voiceEnabled = document.getElementById('gm-voice-enabled');
+        const speechRate = document.getElementById('gm-speech-rate');
+        const speechRateValue = document.getElementById('gm-speech-rate-value');
+        const voiceVolume = document.getElementById('gm-voice-volume');
+        const voiceVolumeValue = document.getElementById('gm-voice-volume-value');
+
+        if (voiceEnabled) voiceEnabled.checked = config.voiceEnabled;
+        if (speechRate) speechRate.value = config.speechRate;
+        if (speechRateValue) speechRateValue.textContent = `${config.speechRate}x`;
+        if (voiceVolume) voiceVolume.value = config.volume;
+        if (voiceVolumeValue) voiceVolumeValue.textContent = `${Math.round(config.volume * 100)}%`;
+
+        // Carregar outras configurações do saveData
+        const gmConfig = this.saveData?.gmConfig || {};
+        const extendedDialogues = document.getElementById('gm-extended-dialogues');
+        const combatTips = document.getElementById('gm-combat-tips');
+        const randomComments = document.getElementById('gm-random-comments');
+
+        if (extendedDialogues) extendedDialogues.checked = gmConfig.extendedDialogues !== false;
+        if (combatTips) combatTips.checked = gmConfig.combatTips !== false;
+        if (randomComments) randomComments.checked = gmConfig.randomComments === true;
+
+        // Estilo do mestre
+        const style = gmConfig.style || 'epico';
+        document.querySelectorAll('input[name="gm-style"]').forEach(radio => {
+            radio.checked = radio.value === style;
+        });
+    }
+
+    /**
+     * Salva as configurações do GM
+     */
+    salvarConfiguracoesGM() {
+        // Salvar configurações de voz
+        this.salvarConfiguracoesGameMaster();
+
+        // Salvar outras configurações
+        if (!this.saveData.gmConfig) {
+            this.saveData.gmConfig = {};
+        }
+
+        this.saveData.gmConfig.extendedDialogues = document.getElementById('gm-extended-dialogues')?.checked;
+        this.saveData.gmConfig.combatTips = document.getElementById('gm-combat-tips')?.checked;
+        this.saveData.gmConfig.randomComments = document.getElementById('gm-random-comments')?.checked;
+
+        const styleRadio = document.querySelector('input[name="gm-style"]:checked');
+        if (styleRadio) {
+            this.saveData.gmConfig.style = styleRadio.value;
+        }
+
+        this.saveManager.salvar(this.saveData);
+
+        // Feedback visual
+        const btn = document.getElementById('gm-save-config');
+        if (btn) {
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Salvo!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        }
+    }
+
+    /**
+     * Testa a voz do Game Master
+     */
+    testarVozGM() {
+        const frases = [
+            "Bem-vindo, aventureiro. Sua jornada está prestes a começar.",
+            "As sombras espreitam em cada esquina do Bairro Esquecido.",
+            "Cuidado! O inimigo se aproxima.",
+            "Excelente jogada! Continue assim, herói."
+        ];
+
+        const frase = frases[Math.floor(Math.random() * frases.length)];
+        this.gameMaster.falar(frase);
+    }
+
+    /**
+     * Atualiza a quote do GM
+     */
+    atualizarQuoteGM() {
+        const quotes = [
+            "Bem-vindo, aventureiro. Sua jornada apenas começou...",
+            "As forças das trevas nunca descansam. Você também não deveria.",
+            "Cada batalha é uma lição. Cada vitória, um passo em direção à luz.",
+            "O Bairro Esquecido guarda segredos antigos... e perigos terríveis.",
+            "Sua party é forte, mas a união faz a verdadeira força."
+        ];
+
+        const quoteEl = document.getElementById('gm-avatar-quote');
+        if (quoteEl) {
+            quoteEl.textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+        }
+    }
+
+    /**
+     * Atualiza o último briefing
+     */
+    atualizarUltimoBriefing() {
+        const cap = this.saveData?.campanha?.capitulo || 1;
+        const missao = this.saveData?.campanha?.missao || 1;
+
+        const chapterEl = document.querySelector('#gm-last-briefing .briefing-chapter');
+        if (chapterEl) {
+            chapterEl.textContent = `Capítulo ${cap} - Missão ${missao}`;
+        }
+
+        // Texto do briefing baseado no capítulo
+        const briefings = {
+            1: "A escuridão se aproxima do Bairro Esquecido. Criaturas malignas surgem das sombras...",
+            2: "A ameaça se expande. Novos inimigos surgem de lugares inesperados...",
+            3: "As origens do mal começam a se revelar. Uma força antiga desperta...",
+            4: "A entidade se manifesta. O confronto final se aproxima...",
+            5: "Este é o confronto definitivo. O destino do Bairro está em suas mãos..."
+        };
+
+        const textEl = document.querySelector('#gm-last-briefing .briefing-text');
+        if (textEl) {
+            textEl.textContent = `"${briefings[cap] || briefings[1]}"`;
+        }
+    }
+
+    /**
+     * Reproduz o último briefing
+     */
+    reproduzirUltimoBriefing() {
+        const cap = this.saveData?.campanha?.capitulo || 1;
+        const missao = this.saveData?.campanha?.missao || 1;
+
+        this.gameMaster.apresentarBriefing({ capitulo: cap, numero: missao });
+    }
+
+    /**
+     * Mostra o modal de lore do herói
+     */
+    mostrarHeroLore(heroId) {
+        const heroesLore = {
+            guerreiro: {
+                nome: 'Guerreiro',
+                titulo: 'O Protetor',
+                icon: '⚔️',
+                descricao: 'Nascido nas ruas do Bairro Esquecido, o Guerreiro cresceu protegendo os mais fracos. Sua espada é seu juramento de nunca deixar o mal prevalecer. Cada cicatriz em seu corpo conta a história de uma vida salva.'
+            },
+            mago: {
+                nome: 'Mago',
+                titulo: 'O Erudito',
+                icon: '🔮',
+                descricao: 'Estudante dos mistérios arcanos, o Mago deixou sua torre de estudos quando sentiu a presença maligna se aproximar. Seu conhecimento das artes místicas é a chave para compreender a natureza da ameaça.'
+            },
+            ladino: {
+                nome: 'Ladino',
+                titulo: 'A Sombra',
+                icon: '🗡️',
+                descricao: 'Nas sombras do Bairro, o Ladino sempre soube que algo estava errado. Suas habilidades furtivas e conhecimento das passagens secretas são essenciais para a sobrevivência do grupo.'
+            },
+            clerigo: {
+                nome: 'Clérigo',
+                titulo: 'O Curador',
+                icon: '✝️',
+                descricao: 'Devoto de uma antiga ordem, o Clérigo veio ao Bairro Esquecido guiado por visões proféticas. Sua fé é o farol que guia o grupo nas trevas, e suas preces mantêm os aliados de pé.'
+            }
+        };
+
+        const hero = heroesLore[heroId];
+        if (!hero) return;
+
+        document.getElementById('hero-lore-portrait').textContent = hero.icon;
+        document.getElementById('hero-lore-name').textContent = hero.nome;
+        document.getElementById('hero-lore-subtitle').textContent = hero.titulo;
+        document.getElementById('hero-lore-description').textContent = hero.descricao;
+
+        document.getElementById('hero-lore-modal')?.classList.remove('hidden');
+    }
+
+    /**
+     * Mostra o modal de informações da criatura
+     */
+    mostrarCreatureModal(creatureId) {
+        // Dados das criaturas (simplificado)
+        const criaturas = {
+            goblin: { nome: 'Goblin', icon: '👺', tipo: 'Humanoide', pv: 7, ataque: 4, defesa: 13, descricao: 'Pequenos humanoides ardilosos que vivem em bandos. Covardes quando sozinhos, perigosos em grupo.' },
+            rato_gigante: { nome: 'Rato Gigante', icon: '🐀', tipo: 'Besta', pv: 5, ataque: 3, defesa: 10, descricao: 'Roedores do tamanho de cães que infestam os esgotos do Bairro. Portadores de doenças.' },
+            esqueleto: { nome: 'Esqueleto', icon: '💀', tipo: 'Morto-vivo', pv: 10, ataque: 5, defesa: 13, descricao: 'Ossos animados por magia negra, estes guerreiros mortos-vivos obedecem sem questionar.' },
+            zumbi: { nome: 'Zumbi', icon: '🧟', tipo: 'Morto-vivo', pv: 15, ataque: 4, defesa: 8, descricao: 'Cadáveres reanimados que vagam em busca de carne viva. Lentos, mas resistentes.' },
+            orc: { nome: 'Orc', icon: '👹', tipo: 'Humanoide', pv: 15, ataque: 7, defesa: 13, descricao: 'Humanoides ferozes e brutais. Sua força é igualada apenas por sua sede de batalha.' },
+            kobold: { nome: 'Kobold', icon: '🦎', tipo: 'Humanoide', pv: 5, ataque: 3, defesa: 12, descricao: 'Pequenos reptilianos astutos que preferem armadilhas ao combate direto.' },
+            lobo: { nome: 'Lobo', icon: '🐺', tipo: 'Besta', pv: 11, ataque: 5, defesa: 13, descricao: 'Predadores noturnos que caçam em matilhas. Leais uns aos outros até a morte.' },
+            ghoul: { nome: 'Ghoul', icon: '👻', tipo: 'Morto-vivo', pv: 18, ataque: 6, defesa: 12, descricao: 'Mortos-vivos famintos cujo toque paralisa as vítimas. Terríveis necrófagos.' },
+            troll: { nome: 'Troll', icon: '🧌', tipo: 'Gigante', pv: 35, ataque: 8, defesa: 15, descricao: 'Gigantes regeneradores de pele verde. Apenas fogo pode impedir sua cura sobrenatural.' },
+            ogro: { nome: 'Ogro', icon: '👿', tipo: 'Gigante', pv: 30, ataque: 9, defesa: 11, descricao: 'Brutos colossais de força devastadora. O que lhes falta em inteligência, sobra em violência.' },
+            mimic: { nome: 'Mímico', icon: '📦', tipo: 'Monstruosidade', pv: 25, ataque: 6, defesa: 12, descricao: 'Criaturas metamorfas que se disfarçam de objetos. Jamais confie em um baú abandonado.' },
+            beholder: { nome: 'Contemplador', icon: '👁️', tipo: 'Aberração', pv: 50, ataque: 10, defesa: 18, descricao: 'Entidades alienígenas de imenso poder. Cada olho dispara um raio mágico diferente.' },
+            giant_spider: { nome: 'Aranha Gigante', icon: '🕷️', tipo: 'Besta', pv: 20, ataque: 6, defesa: 14, descricao: 'Aracnídeos do tamanho de cavalos. Suas teias podem aprisionar até o mais forte guerreiro.' },
+            shadow: { nome: 'Sombra', icon: '👤', tipo: 'Morto-vivo', pv: 12, ataque: 5, defesa: 12, descricao: 'Espíritos sem corpo que drenam a força vital de suas vítimas. Vulneráveis à luz.' }
+        };
+
+        const criatura = criaturas[creatureId];
+        if (!criatura) return;
+
+        document.getElementById('creature-icon').textContent = criatura.icon;
+        document.getElementById('creature-name').textContent = criatura.nome;
+        document.getElementById('creature-type').textContent = criatura.tipo;
+        document.getElementById('creature-description').textContent = criatura.descricao;
+
+        // Stats
+        const statsContainer = document.getElementById('creature-stats');
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div class="creature-stat">
+                    <span class="creature-stat-value">${criatura.pv}</span>
+                    <span class="creature-stat-label">PV</span>
+                </div>
+                <div class="creature-stat">
+                    <span class="creature-stat-value">${criatura.ataque}</span>
+                    <span class="creature-stat-label">Ataque</span>
+                </div>
+                <div class="creature-stat">
+                    <span class="creature-stat-value">${criatura.defesa}</span>
+                    <span class="creature-stat-label">Defesa</span>
+                </div>
+            `;
+        }
+
+        // Contador de derrotados
+        const derrotados = this.saveData?.estatisticas?.inimigosDerrotados || {};
+        const count = derrotados[creatureId] || 0;
+        document.getElementById('creature-defeated-count').textContent = count;
+
+        document.getElementById('creature-modal')?.classList.remove('hidden');
+    }
+
+    /**
+     * Mostra o modal do capítulo
+     */
+    mostrarChapterModal(chapterNum) {
+        const capitulos = {
+            1: {
+                nome: 'O Despertar',
+                resumo: 'A escuridão chegou ao Bairro Esquecido. Criaturas das sombras começam a surgir, e quatro heróis improváveis se unem para enfrentar a ameaça crescente. Este é o início de uma jornada épica.',
+                missoes: ['Primeiros Passos', 'O Beco Sombrio', 'A Praça Abandonada', 'O Velho Armazém', 'O Guardião Corrompido']
+            },
+            2: {
+                nome: 'A Expansão da Ameaça',
+                resumo: 'A ameaça se espalha além das sombras iniciais. Novos tipos de criaturas surgem, e a party descobre que o perigo é maior do que imaginavam.',
+                missoes: ['Ecos nas Ruínas', 'A Fonte Contaminada', 'Território Inimigo', 'O Ritual Interrompido', 'O Mensageiro']
+            },
+            3: {
+                nome: 'A Origem',
+                resumo: 'Os heróis investigam a origem do mal que assola o Bairro. Descobertas perturbadoras revelam uma força antiga prestes a despertar.',
+                missoes: ['Vestígios do Passado', 'A Cripta Esquecida', 'Memórias Sombrias', 'O Portal', 'Avatar da Escuridão']
+            },
+            4: {
+                nome: 'A Entidade',
+                resumo: 'A verdadeira natureza da ameaça se revela. Uma entidade de trevas manipulava tudo desde o início, e agora ela voltou sua atenção para os heróis.',
+                missoes: ['O Chamado', 'Pesadelos', 'Aliados Improváveis', 'A Última Preparação', 'Às Portas do Abismo']
+            },
+            5: {
+                nome: 'O Confronto',
+                resumo: 'Este é o fim. A batalha final contra a escuridão determinará o destino do Bairro Esquecido e de todos os seus habitantes.',
+                missoes: ['O Caminho das Sombras', 'A Fortaleza Negra', 'Guardiões Corrompidos', 'O Santuário Profanado', 'O Confronto Final']
+            }
+        };
+
+        const cap = capitulos[chapterNum];
+        if (!cap) return;
+
+        document.getElementById('chapter-number').textContent = `Capítulo ${chapterNum}`;
+        document.getElementById('chapter-title').textContent = cap.nome;
+        document.getElementById('chapter-summary').textContent = cap.resumo;
+
+        // Renderizar missões
+        const missaoAtual = this.saveData?.campanha?.missao || 1;
+        const capAtual = this.saveData?.campanha?.capitulo || 1;
+
+        const missionsContainer = document.getElementById('chapter-missions');
+        if (missionsContainer) {
+            missionsContainer.innerHTML = cap.missoes.map((missao, index) => {
+                const num = index + 1;
+                let completa = false;
+                if (chapterNum < capAtual) {
+                    completa = true;
+                } else if (chapterNum === capAtual) {
+                    completa = num < missaoAtual;
+                }
+
+                return `
+                    <div class="chapter-mission-item ${completa ? 'completed' : ''}">
+                        <span>${completa ? '✅' : '⚔️'}</span>
+                        <span>Missão ${num}: ${missao}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('chapter-modal')?.classList.remove('hidden');
     }
 }
 
