@@ -11,6 +11,8 @@ export class AudioManager {
         this.isMuted = false;
         this.isLoaded = false;
         this.musicPlaying = false;
+        // Guardar TODAS as instâncias de música para garantir que podemos parar todas
+        this.allMusicInstances = [];
     }
 
     /**
@@ -192,13 +194,16 @@ export class AudioManager {
 
         console.log('[AudioManager] Iniciando música de combate...');
 
-        // SEMPRE parar e destruir música anterior primeiro
+        // SEMPRE parar e destruir TODAS as músicas anteriores primeiro
         this.pararMusica();
 
-        // Criar nova instância de áudio (garante que não há conflitos)
+        // Criar nova instância de áudio
         this.music = new Audio('/public/sounds/combat_music.mp3');
         this.music.loop = true;
         this.music.volume = this.musicVolume;
+
+        // Adicionar à lista de instâncias para poder parar depois
+        this.allMusicInstances.push(this.music);
 
         this.music.play().then(() => {
             this.musicPlaying = true;
@@ -210,26 +215,40 @@ export class AudioManager {
     }
 
     /**
-     * Para a música completamente
+     * Para a música completamente - TODAS as instâncias
      */
     pararMusica() {
-        console.log('[AudioManager] Parando música...');
+        console.log('[AudioManager] Parando TODAS as músicas...', this.allMusicInstances.length, 'instâncias');
 
+        // Parar TODAS as instâncias de música que foram criadas
+        this.allMusicInstances.forEach((audioInstance, index) => {
+            try {
+                if (audioInstance) {
+                    audioInstance.pause();
+                    audioInstance.currentTime = 0;
+                    audioInstance.src = '';
+                    audioInstance.load();
+                    console.log(`[AudioManager] Instância ${index} parada`);
+                }
+            } catch (err) {
+                console.error(`[AudioManager] Erro ao parar instância ${index}:`, err);
+            }
+        });
+
+        // Limpar o array
+        this.allMusicInstances = [];
+
+        // Também parar a referência principal se existir
         if (this.music) {
             try {
-                // Pausar imediatamente
                 this.music.pause();
-                // Resetar posição
                 this.music.currentTime = 0;
-                // Remover fonte para garantir parada completa
                 this.music.src = '';
-                // Remover da memória
                 this.music.load();
-                // Limpar referência
                 this.music = null;
-                console.log('[AudioManager] Música parada e destruída');
+                console.log('[AudioManager] Música principal parada e destruída');
             } catch (err) {
-                console.error('[AudioManager] Erro ao parar música:', err);
+                console.error('[AudioManager] Erro ao parar música principal:', err);
                 this.music = null;
             }
         }
