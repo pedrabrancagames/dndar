@@ -559,6 +559,38 @@
             "recompensas": {
                 "xp": 50
             }
+        },
+        {
+            "id": "espectro",
+            "nome": "Espectro",
+            "tipo": "morto_vivo",
+            "modelo": "specter.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 22,
+                "pv": 22,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Drenar Vida",
+                    "dano": 10,
+                    "dados": "3d6",
+                    "status": "necrotico"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "agressivo"
+            },
+            "resistencias": [
+                "imune_veneno",
+                "resistente_fisico_nao_magico"
+            ],
+            "recompensas": {
+                "xp": 50
+            }
         }
     ]
 }
