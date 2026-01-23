@@ -738,6 +738,151 @@ body {
 }
 
 /* ============================================
+   Combat Menu Button & Pause Menu
+   ============================================ */
+.combat-menu-btn {
+  position: absolute;
+  top: var(--space-md);
+  right: 200px;
+  width: 44px;
+  height: 44px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combat-menu-btn:hover {
+  background: rgba(108, 92, 231, 0.3);
+  border-color: var(--color-accent-primary);
+  transform: scale(1.1);
+}
+
+.combat-menu-btn:active {
+  transform: scale(0.95);
+}
+
+.menu-icon {
+  font-weight: bold;
+}
+
+/* Combat Pause Overlay */
+.combat-pause-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.combat-pause-overlay.hidden {
+  display: none;
+}
+
+.pause-menu-content {
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border: 2px solid var(--color-accent-primary);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-xl);
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 0 40px rgba(108, 92, 231, 0.3);
+}
+
+.pause-menu-content h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-accent-gold);
+  margin-bottom: var(--space-sm);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.pause-menu-text {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.pause-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.pause-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pause-btn span {
+  font-size: 1.2rem;
+}
+
+.resume-btn {
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  color: white;
+}
+
+.resume-btn:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-glow);
+}
+
+.exit-btn {
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-danger);
+  color: var(--color-danger);
+}
+
+.exit-btn:hover {
+  background: rgba(231, 76, 60, 0.2);
+  transform: scale(1.03);
+}
+
+.pause-warning {
+  font-size: 0.75rem;
+  color: var(--color-warning);
+  padding: var(--space-sm);
+  background: rgba(243, 156, 18, 0.1);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+/* Responsive adjustments for combat menu button */
+@media (max-width: 400px) {
+  .combat-menu-btn {
+    right: 170px;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
    Modals
    ============================================ */
 .modal {

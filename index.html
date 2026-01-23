@@ -208,6 +208,28 @@
       <div id="combat-log">
         <div id="log-entries"></div>
       </div>
+
+      <!-- Menu Button (Exit Combat) -->
+      <button id="btn-combat-menu" class="combat-menu-btn" title="Menu">
+        <span class="menu-icon">☰</span>
+      </button>
+
+      <!-- Combat Pause Menu Modal -->
+      <div id="combat-pause-menu" class="combat-pause-overlay hidden">
+        <div class="pause-menu-content">
+          <h3>⏸️ Jogo Pausado</h3>
+          <p class="pause-menu-text">O que deseja fazer?</p>
+          <div class="pause-menu-buttons">
+            <button id="btn-resume-combat" class="pause-btn resume-btn">
+              <span>▶️</span> Continuar
+            </button>
+            <button id="btn-exit-combat" class="pause-btn exit-btn">
+              <span>🏠</span> Voltar ao Menu
+            </button>
+          </div>
+          <p class="pause-warning">⚠️ Sair do combate não salva o progresso desta batalha!</p>
+        </div>
+      </div>
     </div>
   </div>
 

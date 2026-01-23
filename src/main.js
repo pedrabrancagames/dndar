@@ -182,6 +182,19 @@ class Game {
             this.elementos.volumeValue.textContent = `${Math.round(volume * 100)}%`;
             this.salvarConfiguracoesGameMaster();
         });
+
+        // Menu de pausa do combate
+        document.getElementById('btn-combat-menu')?.addEventListener('click', () => {
+            this.abrirMenuPausa();
+        });
+
+        document.getElementById('btn-resume-combat')?.addEventListener('click', () => {
+            this.fecharMenuPausa();
+        });
+
+        document.getElementById('btn-exit-combat')?.addEventListener('click', () => {
+            this.confirmarSaidaCombate();
+        });
     }
 
     /**
@@ -686,6 +699,65 @@ class Game {
      */
     mostrarMensagem(texto) {
         alert(texto); // Por enquanto, usar alert. Futuramente, modal customizado.
+    }
+
+    /**
+     * Abre o menu de pausa durante o combate
+     */
+    abrirMenuPausa() {
+        const pauseMenu = document.getElementById('combat-pause-menu');
+        if (pauseMenu) {
+            pauseMenu.classList.remove('hidden');
+        }
+        // Pausar qualquer áudio de combate
+        this.audioManager?.pausarMusica?.();
+    }
+
+    /**
+     * Fecha o menu de pausa e retoma o combate
+     */
+    fecharMenuPausa() {
+        const pauseMenu = document.getElementById('combat-pause-menu');
+        if (pauseMenu) {
+            pauseMenu.classList.add('hidden');
+        }
+        // Retomar áudio de combate
+        this.audioManager?.retomarMusica?.();
+    }
+
+    /**
+     * Confirma saída do combate e volta ao menu
+     */
+    confirmarSaidaCombate() {
+        // Fechar menu de pausa
+        this.fecharMenuPausa();
+
+        // Parar música de combate
+        this.audioManager.pararMusica();
+
+        // Limpar estado do combate
+        if (this.combatManager) {
+            this.combatManager.finalizarCombateManual?.();
+        }
+
+        // Limpar cena 3D
+        if (this.sceneManager) {
+            this.sceneManager.limparInimigos?.();
+        }
+
+        // Parar narração do GM
+        this.gameMaster.stop();
+
+        // Limpar estado do AR se ativo
+        if (this.isARMode && this.arSceneManager) {
+            this.arSceneManager.stopAR?.();
+            this.isARMode = false;
+        }
+
+        // Voltar para home
+        this.irParaTela('home');
+
+        console.log('[Game] Saiu do combate via menu');
     }
 
     /**
