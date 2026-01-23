@@ -1,6 +1,6 @@
 # 📋 TODO - Crônicas do Bairro Esquecido
 
-Última atualização: 2026-01-23
+Última atualização: 2026-01-23 (Revisado)
 
 ---
 
@@ -125,24 +125,32 @@
 
 ### 🟡 Prioridade Média (Melhoria de experiência)
 
-#### Tela de Mapa
-- [ ] Criar tela de mapa do bairro
-- [ ] Mostrar localizações das missões
-- [ ] Indicar missões disponíveis, completas e bloqueadas
+#### ~~Tela de Mapa~~ ✅
+- [x] Criar tela de mapa do bairro
+- [x] Mostrar localizações das missões
+- [x] Indicar missões disponíveis, completas e bloqueadas
+- [x] Caminhos conectando locais com estados (ativo, completo)
+- [x] Legenda interativa
 - [ ] Navegação entre capítulos (quando houver mais)
 
-#### Tela de Perfil/Party
-- [ ] Criar tela de perfil dos heróis
-- [ ] Mostrar stats detalhados de cada herói
-- [ ] Mostrar deck atual de cada herói
-- [ ] Histórico de combates e estatísticas
-- [ ] Sistema de equipamentos (visual)
+#### ~~Tela de Perfil/Party~~ ✅
+- [x] Criar tela de perfil dos heróis
+- [x] Mostrar stats detalhados de cada herói
+- [x] Mostrar deck atual de cada herói (cartas desbloqueadas)
+- [x] Histórico de combates e estatísticas
+- [x] Sistema de equipamentos (visual)
+- [x] Títulos baseados em progresso
+- [x] Sistema de conquistas/achievements
 
-#### Sistema de Inventário
-- [ ] UI de inventário
+#### ~~Sistema de Inventário~~ ✅
+- [x] UI de inventário completa
+- [x] Sistema de filtros por categoria
+- [x] Detalhes de itens com stats
+- [x] Sistema de equipar/desequipar
+- [x] Loja para comprar itens com ouro
+- [x] Vender itens
+- [x] 24 itens implementados (armas, armaduras, acessórios, consumíveis)
 - [ ] Usar itens durante combate (poções, etc.)
-- [ ] Sistema de loot ao derrotar inimigos
-- [ ] Loja para comprar itens com ouro
 
 #### Comportamentos de IA Avançados
 - [ ] Implementar IA "calculista" (escolhe melhor ataque para situação)
