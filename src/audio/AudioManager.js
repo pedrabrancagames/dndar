@@ -10,6 +10,7 @@ export class AudioManager {
         this.sfxVolume = 0.7;
         this.isMuted = false;
         this.isLoaded = false;
+        this.musicPlaying = false;
     }
 
     /**
@@ -191,10 +192,19 @@ export class AudioManager {
     iniciarMusicaCombate() {
         if (this.isMuted || !this.music) return;
 
+        // Parar música anterior se estiver tocando
+        if (this.musicPlaying) {
+            this.pararMusica();
+        }
+
         // Garantir que o volume está correto antes de tocar
         this.music.volume = this.musicVolume;
         this.music.currentTime = 0;
-        this.music.play().catch(() => {
+        this.music.play().then(() => {
+            this.musicPlaying = true;
+            console.log('[AudioManager] Música de combate iniciada');
+        }).catch((err) => {
+            console.warn('[AudioManager] Erro ao iniciar música:', err);
             // Ignorar erro de autoplay bloqueado
         });
     }
@@ -206,6 +216,8 @@ export class AudioManager {
         if (this.music) {
             this.music.pause();
             this.music.currentTime = 0;
+            this.musicPlaying = false;
+            console.log('[AudioManager] Música parada');
         }
     }
 

@@ -457,6 +457,21 @@ class Game {
      * Muda para uma tela específica
      */
     irParaTela(tela) {
+        // Se estava na tela de combate e está saindo, fazer limpeza
+        if (this.telaAtual === 'combat' && tela !== 'combat') {
+            // Parar música de combate
+            this.audioManager.pararMusica();
+
+            // Limpar estado do AR se estiver ativo
+            if (this.isARMode && this.arSceneManager) {
+                this.arSceneManager.stopAR?.();
+                this.isARMode = false;
+            }
+
+            // Parar narração do GM
+            this.gameMaster.stop();
+        }
+
         // Esconder todas as telas
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
