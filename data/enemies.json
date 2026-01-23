@@ -494,6 +494,38 @@
             "recompensas": {
                 "xp": 40
             }
+        },
+        {
+            "id": "owlbear",
+            "nome": "Coruja-Urso",
+            "tipo": "monstridade",
+            "modelo": "owlbear.glb",
+            "escala": 1.3,
+            "stats": {
+                "pvMax": 45,
+                "pv": 45,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Garras Dilacerantes",
+                    "dano": 12,
+                    "dados": "2d8"
+                },
+                {
+                    "nome": "Bico Perfurante",
+                    "dano": 8,
+                    "dados": "1d10"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "recompensas": {
+                "xp": 70
+            }
         }
     ]
 }
