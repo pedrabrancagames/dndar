@@ -235,16 +235,15 @@ Para substituir partículas ou complementar:
 ### Para criar (Prioridade Média):
 6. [x] `giant_spider.glb` - Aranha Gigante (inimigo comum de dungeon)
 7. [x] `specter.glb` - Espectro (combina com tema de mortos-vivos)
-8. [ ] `wight.glb` - Wight (elite morto-vivo)
-9. [ ] `hobgoblin.glb` - Hobgoblin (líder de goblins)
-10. [ ] `bugbear.glb` - Bugbear (bom para emboscadas)
+8. [x] `wight.glb` - Wight (elite morto-vivo)
+9. [x] `hobgoblin.glb` - Hobgoblin (líder de goblins)
+10. [x] `bugbear.glb` - Bugbear (bom para emboscadas)
 
 ### Para adicionar ao enemies.json (modelo já existe):
 11. [ ] Adicionar Owlbear usando `owlbear.glb`
 
 ### Ações imediatas:
-12. [ ] Renomear `placeholder-monster.glb` para algo mais específico
-13. [ ] Criar entrada para Owlbear no enemies.json
+12. [ ] Criar entrada para Owlbear no enemies.json
 
 ---
 

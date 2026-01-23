@@ -10,6 +10,12 @@ export class GameMaster {
         this.speechRate = 0.9;
         this.volume = 1.0;
 
+        // Configurações narrativas
+        this.extendedDialogues = true;
+        this.combatTips = true;
+        this.randomComments = false;
+        this.style = 'epico'; // 'epico', 'humoristico', 'misterioso'
+
         this.estadoNarrativo = {
             capituloAtual: 1,
             missaoAtual: 1,
@@ -303,38 +309,103 @@ export class GameMaster {
      * Narra resultado de ação
      */
     async narrarAcao(acao) {
+        // Se dicas de combate estiverem desativadas, não narrar
+        if (!this.combatTips) return;
+
+        // Narração baseada no estilo do mestre
         const narracoes = {
-            dano_alto: [
-                "Um golpe devastador!",
-                "O ataque encontra seu alvo com força brutal!",
-                "Impressionante!"
-            ],
-            critico: [
-                "Golpe crítico!",
-                "Um acerto perfeito!",
-                "Direto no ponto fraco!"
-            ],
-            cura: [
-                "A luz divina restaura as feridas.",
-                "Energia vital flui pelo grupo."
-            ],
-            buff: [
-                "O poder cresce dentro de vocês.",
-                "Uma aura protetora se forma."
-            ],
-            derrota_inimigo: [
-                "A criatura sucumbe.",
-                "Mais um cai.",
-                "A ameaça foi neutralizada."
-            ],
-            heroi_incapacitado: [
-                "Não! Um de vocês caiu!",
-                "Mantenham a formação! Protejam o caído!"
-            ]
+            epico: {
+                dano_alto: [
+                    "Um golpe devastador!",
+                    "O ataque encontra seu alvo com força brutal!",
+                    "Impressionante!"
+                ],
+                critico: [
+                    "Golpe crítico!",
+                    "Um acerto perfeito!",
+                    "Direto no ponto fraco!"
+                ],
+                cura: [
+                    "A luz divina restaura as feridas.",
+                    "Energia vital flui pelo grupo."
+                ],
+                buff: [
+                    "O poder cresce dentro de vocês.",
+                    "Uma aura protetora se forma."
+                ],
+                derrota_inimigo: [
+                    "A criatura sucumbe.",
+                    "Mais um cai.",
+                    "A ameaça foi neutralizada."
+                ],
+                heroi_incapacitado: [
+                    "Não! Um de vocês caiu!",
+                    "Mantenham a formação! Protejam o caído!"
+                ]
+            },
+            humoristico: {
+                dano_alto: [
+                    "Uau, isso deve ter doído!",
+                    "Esse vai precisar de gelo!",
+                    "Bem, alguém acordou violento hoje!"
+                ],
+                critico: [
+                    "Bingo! Acertou em cheio!",
+                    "Foi proposital ou sorte? Não importa!",
+                    "Opa, isso foi bonito!"
+                ],
+                cura: [
+                    "Band-aid mágico aplicado!",
+                    "Melhor que um café, essa cura!"
+                ],
+                buff: [
+                    "Modo turbo ativado!",
+                    "Alguém está se sentindo especial!"
+                ],
+                derrota_inimigo: [
+                    "Tchau, foi um prazer... não!",
+                    "Próximo!",
+                    "Esse não vai mais incomodar!"
+                ],
+                heroi_incapacitado: [
+                    "Ops, alguém precisa de ajuda!",
+                    "Hora de uma soneca forçada..."
+                ]
+            },
+            misterioso: {
+                dano_alto: [
+                    "As sombras sussurram seu nome...",
+                    "O destino cobrou seu preço.",
+                    "A escuridão observa... e aprova."
+                ],
+                critico: [
+                    "O véu entre mundos tremeu.",
+                    "Um eco no vazio...",
+                    "Inevitável."
+                ],
+                cura: [
+                    "A luz persiste nas trevas.",
+                    "Algo antigo despertou para ajudar."
+                ],
+                buff: [
+                    "Poder de além flui através de vocês.",
+                    "Os espíritos concedem sua bênção."
+                ],
+                derrota_inimigo: [
+                    "Retorna ao vazio...",
+                    "O ciclo se completa.",
+                    "A sombra se desvanece."
+                ],
+                heroi_incapacitado: [
+                    "O abismo chama...",
+                    "A escuridão tenta reclamar mais um."
+                ]
+            }
         };
 
         const tipo = this.classificarAcao(acao);
-        const opcoes = narracoes[tipo] || [];
+        const estiloAtual = narracoes[this.style] || narracoes.epico;
+        const opcoes = estiloAtual[tipo] || [];
 
         if (opcoes.length > 0) {
             const texto = opcoes[Math.floor(Math.random() * opcoes.length)];
@@ -359,14 +430,29 @@ export class GameMaster {
      * Narra vitória no combate
      */
     async anunciarVitoria(autoContinuar = false) {
-        const frases = [
-            "A ameaça foi contida. Por enquanto.",
-            "Vitória! Mas não baixem a guarda.",
-            "Isso foi apenas um presságio. Preparem-se para o que vem.",
-            "Bem feito! Mas o bairro ainda precisa de vocês."
-        ];
+        const frases = {
+            epico: [
+                "A ameaça foi contida. Por enquanto.",
+                "Vitória! Mas não baixem a guarda.",
+                "Isso foi apenas um presságio. Preparem-se para o que vem.",
+                "Bem feito! Mas o bairro ainda precisa de vocês."
+            ],
+            humoristico: [
+                "Ganhamos! Hora do lanche da vitória!",
+                "Era isso? Pensei que seria mais difícil!",
+                "Parabéns! Vocês são incríveis... e modestos!",
+                "Vitória! Quem quer pizza para comemorar?"
+            ],
+            misterioso: [
+                "O silêncio retorna... por enquanto.",
+                "A escuridão recua, mas nunca dorme.",
+                "Vocês venceram esta batalha. A guerra continua.",
+                "Os ecos da vitória se perdem no vazio."
+            ]
+        };
 
-        const texto = frases[Math.floor(Math.random() * frases.length)];
+        const opcoes = frases[this.style] || frases.epico;
+        const texto = opcoes[Math.floor(Math.random() * opcoes.length)];
         await this.mostrarDialogo(texto, { tipo: 'vitoria', autoContinuar });
     }
 
@@ -374,10 +460,21 @@ export class GameMaster {
      * Narra derrota no combate
      */
     async anunciarDerrota(autoContinuar = false) {
-        await this.mostrarDialogo(
-            "A escuridão venceu desta vez. Mas ainda há esperança. Tentem novamente.",
-            { tipo: 'derrota', autoContinuar }
-        );
+        const frases = {
+            epico: [
+                "A escuridão venceu desta vez. Mas ainda há esperança. Tentem novamente."
+            ],
+            humoristico: [
+                "Oops! Isso não saiu como planejado. Vamos tentar de novo?"
+            ],
+            misterioso: [
+                "O véu se fecha. Mas o destino oferece outra chance..."
+            ]
+        };
+
+        const opcoes = frases[this.style] || frases.epico;
+        const texto = opcoes[Math.floor(Math.random() * opcoes.length)];
+        await this.mostrarDialogo(texto, { tipo: 'derrota', autoContinuar });
     }
 
     /**
@@ -399,7 +496,11 @@ export class GameMaster {
             voiceEnabled: this.voiceEnabled,
             speechRate: this.speechRate,
             volume: this.volume,
-            voiceName: this.voice?.name
+            voiceName: this.voice?.name,
+            extendedDialogues: this.extendedDialogues,
+            combatTips: this.combatTips,
+            randomComments: this.randomComments,
+            style: this.style
         };
     }
 
@@ -411,5 +512,31 @@ export class GameMaster {
         if (config.speechRate !== undefined) this.speechRate = config.speechRate;
         if (config.volume !== undefined) this.volume = config.volume;
         if (config.voiceName) this.setVoice(config.voiceName);
+        if (config.extendedDialogues !== undefined) this.extendedDialogues = config.extendedDialogues;
+        if (config.combatTips !== undefined) this.combatTips = config.combatTips;
+        if (config.randomComments !== undefined) this.randomComments = config.randomComments;
+        if (config.style) this.style = config.style;
+    }
+
+    /**
+     * Define configurações narrativas
+     */
+    setExtendedDialogues(enabled) {
+        this.extendedDialogues = enabled;
+    }
+
+    setCombatTips(enabled) {
+        this.combatTips = enabled;
+    }
+
+    setRandomComments(enabled) {
+        this.randomComments = enabled;
+    }
+
+    setStyle(style) {
+        if (['epico', 'humoristico', 'misterioso'].includes(style)) {
+            this.style = style;
+            console.log('[GameMaster] Estilo alterado para:', style);
+        }
     }
 }

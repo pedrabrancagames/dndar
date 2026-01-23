@@ -842,6 +842,17 @@ class Game {
                 console.warn('[Game] Erro ao carregar configurações:', e);
             }
         }
+
+        // Também carregar configurações narrativas do saveData
+        if (this.saveData?.gmConfig) {
+            const gmConfig = this.saveData.gmConfig;
+            this.gameMaster.setExtendedDialogues(gmConfig.extendedDialogues !== false);
+            this.gameMaster.setCombatTips(gmConfig.combatTips !== false);
+            this.gameMaster.setRandomComments(gmConfig.randomComments === true);
+            if (gmConfig.style) {
+                this.gameMaster.setStyle(gmConfig.style);
+            }
+        }
     }
 
     /**
@@ -2737,6 +2748,28 @@ class Game {
             this.testarVozGM();
         });
 
+        // Configurações de narrativa
+        document.getElementById('gm-extended-dialogues')?.addEventListener('change', (e) => {
+            this.gameMaster.setExtendedDialogues(e.target.checked);
+        });
+
+        document.getElementById('gm-combat-tips')?.addEventListener('change', (e) => {
+            this.gameMaster.setCombatTips(e.target.checked);
+        });
+
+        document.getElementById('gm-random-comments')?.addEventListener('change', (e) => {
+            this.gameMaster.setRandomComments(e.target.checked);
+        });
+
+        // Estilo do mestre
+        document.querySelectorAll('input[name="gm-style"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.gameMaster.setStyle(e.target.value);
+                }
+            });
+        });
+
         // Salvar configurações
         document.getElementById('gm-save-config')?.addEventListener('click', () => {
             this.salvarConfiguracoesGM();
@@ -2936,6 +2969,7 @@ class Game {
         const combatTips = document.getElementById('gm-combat-tips');
         const randomComments = document.getElementById('gm-random-comments');
 
+        // Aplicar valores à UI
         if (extendedDialogues) extendedDialogues.checked = gmConfig.extendedDialogues !== false;
         if (combatTips) combatTips.checked = gmConfig.combatTips !== false;
         if (randomComments) randomComments.checked = gmConfig.randomComments === true;
@@ -2945,6 +2979,12 @@ class Game {
         document.querySelectorAll('input[name="gm-style"]').forEach(radio => {
             radio.checked = radio.value === style;
         });
+
+        // TAMBÉM aplicar ao GameMaster instance
+        this.gameMaster.setExtendedDialogues(gmConfig.extendedDialogues !== false);
+        this.gameMaster.setCombatTips(gmConfig.combatTips !== false);
+        this.gameMaster.setRandomComments(gmConfig.randomComments === true);
+        this.gameMaster.setStyle(style);
     }
 
     /**
@@ -2993,7 +3033,7 @@ class Game {
         ];
 
         const frase = frases[Math.floor(Math.random() * frases.length)];
-        this.gameMaster.falar(frase);
+        this.gameMaster.narrate(frase);
     }
 
     /**
