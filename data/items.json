@@ -1,0 +1,407 @@
+{
+  "items": [
+    {
+      "id": "espada_ferro",
+      "nome": "Espada de Ferro",
+      "tipo": "arma",
+      "raridade": "comum",
+      "icon": "🗡️",
+      "descricao": "Uma espada de ferro simples, mas eficaz.",
+      "preco": 50,
+      "classes": ["guerreiro", "ladino"],
+      "stats": {
+        "ataque": 2
+      }
+    },
+    {
+      "id": "espada_aco",
+      "nome": "Espada de Aço",
+      "tipo": "arma",
+      "raridade": "incomum",
+      "icon": "⚔️",
+      "descricao": "Uma espada forjada em aço de alta qualidade.",
+      "preco": 150,
+      "classes": ["guerreiro"],
+      "stats": {
+        "ataque": 4
+      }
+    },
+    {
+      "id": "machado_duplo",
+      "nome": "Machado Duplo",
+      "tipo": "arma",
+      "raridade": "raro",
+      "icon": "🪓",
+      "descricao": "Um machado de duas lâminas devastador.",
+      "preco": 300,
+      "classes": ["guerreiro"],
+      "stats": {
+        "ataque": 6,
+        "critico": 10
+      }
+    },
+    {
+      "id": "adaga_sombria",
+      "nome": "Adaga Sombria",
+      "tipo": "arma",
+      "raridade": "incomum",
+      "icon": "🔪",
+      "descricao": "Uma adaga enegrecida, perfeita para ataques furtivos.",
+      "preco": 120,
+      "classes": ["ladino"],
+      "stats": {
+        "ataque": 2,
+        "critico": 15
+      }
+    },
+    {
+      "id": "adaga_assassino",
+      "nome": "Adaga do Assassino",
+      "tipo": "arma",
+      "raridade": "raro",
+      "icon": "🗡️",
+      "descricao": "A arma favorita dos assassinos profissionais.",
+      "preco": 280,
+      "classes": ["ladino"],
+      "stats": {
+        "ataque": 4,
+        "critico": 25
+      }
+    },
+    {
+      "id": "cajado_aprendiz",
+      "nome": "Cajado de Aprendiz",
+      "tipo": "arma",
+      "raridade": "comum",
+      "icon": "🪄",
+      "descricao": "Um cajado simples para magos iniciantes.",
+      "preco": 60,
+      "classes": ["mago"],
+      "stats": {
+        "ataque": 1,
+        "magia": 2
+      }
+    },
+    {
+      "id": "cajado_arcano",
+      "nome": "Cajado Arcano",
+      "tipo": "arma",
+      "raridade": "raro",
+      "icon": "🔮",
+      "descricao": "Um cajado imbuído com poder arcano.",
+      "preco": 350,
+      "classes": ["mago"],
+      "stats": {
+        "ataque": 2,
+        "magia": 6
+      }
+    },
+    {
+      "id": "martelo_sagrado",
+      "nome": "Martelo Sagrado",
+      "tipo": "arma",
+      "raridade": "incomum",
+      "icon": "🔨",
+      "descricao": "Um martelo abençoado por forças divinas.",
+      "preco": 180,
+      "classes": ["clerigo"],
+      "stats": {
+        "ataque": 3,
+        "cura": 2
+      }
+    },
+    {
+      "id": "maca_luz",
+      "nome": "Maça da Luz",
+      "tipo": "arma",
+      "raridade": "raro",
+      "icon": "✨",
+      "descricao": "Uma maça radiante que causa dano extra a mortos-vivos.",
+      "preco": 320,
+      "classes": ["clerigo"],
+      "stats": {
+        "ataque": 4,
+        "cura": 4
+      }
+    },
+    {
+      "id": "armadura_couro",
+      "nome": "Armadura de Couro",
+      "tipo": "armadura",
+      "raridade": "comum",
+      "icon": "🥋",
+      "descricao": "Proteção básica feita de couro resistente.",
+      "preco": 40,
+      "classes": ["guerreiro", "ladino", "clerigo"],
+      "stats": {
+        "defesa": 2
+      }
+    },
+    {
+      "id": "cota_malha",
+      "nome": "Cota de Malha",
+      "tipo": "armadura",
+      "raridade": "incomum",
+      "icon": "🛡️",
+      "descricao": "Armadura de malha de ferro entrelaçado.",
+      "preco": 180,
+      "classes": ["guerreiro", "clerigo"],
+      "stats": {
+        "defesa": 4,
+        "pvMax": 4
+      }
+    },
+    {
+      "id": "armadura_placas",
+      "nome": "Armadura de Placas",
+      "tipo": "armadura",
+      "raridade": "raro",
+      "icon": "⚔️",
+      "descricao": "A mais pesada e protetora das armaduras.",
+      "preco": 400,
+      "classes": ["guerreiro"],
+      "stats": {
+        "defesa": 8,
+        "pvMax": 8
+      }
+    },
+    {
+      "id": "manto_sombras",
+      "nome": "Manto das Sombras",
+      "tipo": "armadura",
+      "raridade": "raro",
+      "icon": "🧥",
+      "descricao": "Um manto que permite mover-se nas sombras.",
+      "preco": 280,
+      "classes": ["ladino"],
+      "stats": {
+        "defesa": 2,
+        "evasao": 15
+      }
+    },
+    {
+      "id": "tunica_mago",
+      "nome": "Túnica do Mago",
+      "tipo": "armadura",
+      "raridade": "incomum",
+      "icon": "👘",
+      "descricao": "Túnica encantada que amplifica poderes mágicos.",
+      "preco": 200,
+      "classes": ["mago"],
+      "stats": {
+        "defesa": 1,
+        "magia": 4
+      }
+    },
+    {
+      "id": "vestes_sacerdote",
+      "nome": "Vestes do Sacerdote",
+      "tipo": "armadura",
+      "raridade": "incomum",
+      "icon": "👔",
+      "descricao": "Vestes sagradas que aumentam o poder de cura.",
+      "preco": 180,
+      "classes": ["clerigo"],
+      "stats": {
+        "defesa": 2,
+        "cura": 4
+      }
+    },
+    {
+      "id": "anel_forca",
+      "nome": "Anel da Força",
+      "tipo": "acessorio",
+      "raridade": "incomum",
+      "icon": "💍",
+      "descricao": "Um anel que aumenta a força do portador.",
+      "preco": 100,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "stats": {
+        "ataque": 2
+      }
+    },
+    {
+      "id": "amuleto_vida",
+      "nome": "Amuleto da Vida",
+      "tipo": "acessorio",
+      "raridade": "raro",
+      "icon": "📿",
+      "descricao": "Um amuleto que aumenta a vitalidade.",
+      "preco": 250,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "stats": {
+        "pvMax": 10
+      }
+    },
+    {
+      "id": "botas_velocidade",
+      "nome": "Botas da Velocidade",
+      "tipo": "acessorio",
+      "raridade": "incomum",
+      "icon": "👢",
+      "descricao": "Botas encantadas que aceleram o portador.",
+      "preco": 150,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "stats": {
+        "paMax": 1
+      }
+    },
+    {
+      "id": "colar_protecao",
+      "nome": "Colar de Proteção",
+      "tipo": "acessorio",
+      "raridade": "raro",
+      "icon": "🔗",
+      "descricao": "Um colar que protege contra ataques.",
+      "preco": 220,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "stats": {
+        "defesa": 3
+      }
+    },
+    {
+      "id": "luvas_precisao",
+      "nome": "Luvas da Precisão",
+      "tipo": "acessorio",
+      "raridade": "raro",
+      "icon": "🧤",
+      "descricao": "Luvas que aumentam a chance de crítico.",
+      "preco": 280,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "stats": {
+        "critico": 20
+      }
+    },
+    {
+      "id": "pocao_cura_pequena",
+      "nome": "Poção de Cura Menor",
+      "tipo": "consumivel",
+      "raridade": "comum",
+      "icon": "🧪",
+      "descricao": "Restaura 10 pontos de vida.",
+      "preco": 25,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "cura",
+        "valor": 10
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "pocao_cura_media",
+      "nome": "Poção de Cura",
+      "tipo": "consumivel",
+      "raridade": "incomum",
+      "icon": "🧪",
+      "descricao": "Restaura 25 pontos de vida.",
+      "preco": 60,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "cura",
+        "valor": 25
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "pocao_cura_grande",
+      "nome": "Poção de Cura Maior",
+      "tipo": "consumivel",
+      "raridade": "raro",
+      "icon": "🧪",
+      "descricao": "Restaura 50 pontos de vida.",
+      "preco": 120,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "cura",
+        "valor": 50
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "elixir_forca",
+      "nome": "Elixir de Força",
+      "tipo": "consumivel",
+      "raridade": "incomum",
+      "icon": "⚗️",
+      "descricao": "Aumenta o ataque em +3 por 3 turnos.",
+      "preco": 80,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "buff",
+        "stat": "ataque",
+        "valor": 3,
+        "duracao": 3
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "elixir_protecao",
+      "nome": "Elixir de Proteção",
+      "tipo": "consumivel",
+      "raridade": "incomum",
+      "icon": "⚗️",
+      "descricao": "Aumenta a defesa em +3 por 3 turnos.",
+      "preco": 80,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "buff",
+        "stat": "defesa",
+        "valor": 3,
+        "duracao": 3
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "bomba_fogo",
+      "nome": "Bomba de Fogo",
+      "tipo": "consumivel",
+      "raridade": "incomum",
+      "icon": "💣",
+      "descricao": "Causa 15 de dano a todos os inimigos.",
+      "preco": 100,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "dano_area",
+        "valor": 15
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "pergaminho_ressurreicao",
+      "nome": "Pergaminho de Ressurreição",
+      "tipo": "consumivel",
+      "raridade": "lendario",
+      "icon": "📜",
+      "descricao": "Revive um aliado caído com 50% de vida.",
+      "preco": 300,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "reviver",
+        "valor": 50
+      },
+      "quantidade": 1
+    },
+    {
+      "id": "antidoto",
+      "nome": "Antídoto",
+      "tipo": "consumivel",
+      "raridade": "comum",
+      "icon": "💊",
+      "descricao": "Remove todos os efeitos de veneno.",
+      "preco": 30,
+      "classes": ["guerreiro", "ladino", "mago", "clerigo"],
+      "efeito": {
+        "tipo": "curar_status",
+        "status": "envenenado"
+      },
+      "quantidade": 1
+    }
+  ],
+  "raridadesCores": {
+    "comum": "#a4a4b8",
+    "incomum": "#27ae60",
+    "raro": "#3498db",
+    "epico": "#9b59b6",
+    "lendario": "#f39c12"
+  }
+}

@@ -28,6 +28,12 @@ class Game {
         this.saveData = null;
         this.settings = null;
         this.missaoSelecionada = null;
+
+        // Inventário
+        this.itemsData = null;
+        this.itemSelecionado = null;
+        this.heroiEquipSelecionado = 'guerreiro';
+        this.filtroAtual = 'todos';
     }
 
     /**
@@ -84,6 +90,7 @@ class Game {
         this.setupMissionCallbacks();
         this.setupMapCallbacks();
         this.setupProfileCallbacks();
+        this.setupInventoryCallbacks();
 
         this.atualizarLoading(85, 'Carregando sons...');
 
@@ -1499,6 +1506,633 @@ class Game {
                 </div>
             `;
         }).join('');
+    }
+
+    /**
+     * Configura callbacks do inventário
+     */
+    setupInventoryCallbacks() {
+        // Botão de inventário no menu
+        document.getElementById('btn-inventory')?.addEventListener('click', () => {
+            this.irParaTela('inventory');
+            this.carregarInventario();
+        });
+
+        // Botão voltar
+        document.getElementById('inventory-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+            this.atualizarOuroHome();
+        });
+
+        // Tabs do inventário
+        document.querySelectorAll('.inv-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabId = e.target.dataset.tab;
+                this.trocarTabInventario(tabId);
+            });
+        });
+
+        // Fechar painel de detalhes
+        document.getElementById('close-item-details')?.addEventListener('click', () => {
+            document.getElementById('item-details-panel')?.classList.add('hidden');
+            this.itemSelecionado = null;
+        });
+
+        // Botão usar item
+        document.getElementById('use-item-btn')?.addEventListener('click', () => {
+            if (this.itemSelecionado) {
+                this.usarItem(this.itemSelecionado);
+            }
+        });
+
+        // Botão vender item
+        document.getElementById('sell-item-btn')?.addEventListener('click', () => {
+            if (this.itemSelecionado) {
+                this.venderItem(this.itemSelecionado);
+            }
+        });
+
+        // Botão comprar item
+        document.getElementById('buy-item-btn')?.addEventListener('click', () => {
+            if (this.itemSelecionado) {
+                this.comprarItem(this.itemSelecionado);
+            }
+        });
+
+        // Seleção de herói para equipar
+        document.querySelectorAll('.hero-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.hero-select-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.heroiEquipSelecionado = e.target.dataset.hero;
+                this.renderizarEquipamentos();
+            });
+        });
+    }
+
+    /**
+     * Carrega os dados de itens e renderiza o inventário
+     */
+    async carregarInventario() {
+        // Carregar dados de itens se ainda não carregou
+        if (!this.itemsData) {
+            try {
+                const response = await fetch('/data/items.json');
+                this.itemsData = await response.json();
+            } catch (error) {
+                console.error('[Game] Erro ao carregar itens:', error);
+                this.itemsData = { items: [] };
+            }
+        }
+
+        // Atualizar ouro
+        this.atualizarDisplayOuro();
+
+        // Renderizar aba ativa
+        this.renderizarInventario();
+        this.renderizarLoja();
+        this.renderizarEquipamentos();
+
+        // Setup filtros
+        this.setupFiltros();
+    }
+
+    /**
+     * Atualiza displays de ouro
+     */
+    atualizarDisplayOuro() {
+        const ouro = this.saveData?.inventario?.ouro || 0;
+        document.getElementById('inventory-gold')?.textContent &&
+            (document.getElementById('inventory-gold').textContent = ouro);
+        document.getElementById('home-gold-display')?.textContent &&
+            (document.getElementById('home-gold-display').textContent = `${ouro} 🪙`);
+    }
+
+    /**
+     * Atualiza ouro na home
+     */
+    atualizarOuroHome() {
+        const ouro = this.saveData?.inventario?.ouro || 0;
+        const display = document.getElementById('home-gold-display');
+        if (display) display.textContent = `${ouro} 🪙`;
+    }
+
+    /**
+     * Troca entre as tabs do inventário
+     */
+    trocarTabInventario(tabId) {
+        // Atualizar tabs
+        document.querySelectorAll('.inv-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabId);
+        });
+
+        // Mostrar/esconder conteúdo
+        document.getElementById('inventory-items-tab')?.classList.toggle('hidden', tabId !== 'items');
+        document.getElementById('inventory-equip-tab')?.classList.toggle('hidden', tabId !== 'equip');
+        document.getElementById('inventory-shop-tab')?.classList.toggle('hidden', tabId !== 'shop');
+
+        // Resetar seleção
+        this.itemSelecionado = null;
+        document.getElementById('item-details-panel')?.classList.add('hidden');
+        document.getElementById('shop-preview')?.classList.add('hidden');
+    }
+
+    /**
+     * Configura filtros de itens
+     */
+    setupFiltros() {
+        document.querySelectorAll('.item-filters').forEach(filterGroup => {
+            filterGroup.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    this.filtroAtual = e.target.dataset.filter;
+
+                    // Verificar qual grid precisa atualizar
+                    if (filterGroup.closest('#inventory-items-tab')) {
+                        this.renderizarInventario();
+                    } else if (filterGroup.closest('#inventory-shop-tab')) {
+                        this.renderizarLoja();
+                    }
+                });
+            });
+        });
+    }
+
+    /**
+     * Renderiza os itens do inventário
+     */
+    renderizarInventario() {
+        const container = document.getElementById('inventory-grid');
+        if (!container) return;
+
+        const itens = this.saveData?.inventario?.itens || [];
+        const filtro = this.filtroAtual;
+
+        // Mapear itens com dados completos
+        const itensComDados = itens.map(item => {
+            const dadosItem = this.itemsData?.items?.find(i => i.id === item.id);
+            return { ...dadosItem, quantidade: item.quantidade };
+        }).filter(item => item && item.id);
+
+        // Aplicar filtro
+        const itensFiltrados = filtro === 'todos'
+            ? itensComDados
+            : itensComDados.filter(item => item.tipo === filtro);
+
+        if (itensFiltrados.length === 0) {
+            container.innerHTML = `
+                <div class="empty-inventory" style="grid-column: 1/-1;">
+                    <span class="empty-inventory-icon">📦</span>
+                    <span class="empty-inventory-text">Nenhum item encontrado</span>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = itensFiltrados.map(item => {
+            const equipado = this.verificarItemEquipado(item.id);
+            return `
+                <div class="item-slot" data-id="${item.id}" data-rarity="${item.raridade}">
+                    <span class="item-icon">${item.icon}</span>
+                    <span class="item-name">${item.nome}</span>
+                    ${item.quantidade > 1 ? `<span class="item-quantity">x${item.quantidade}</span>` : ''}
+                    ${equipado ? `<span class="item-equipped-badge">✓</span>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Adicionar event listeners
+        container.querySelectorAll('.item-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                const itemId = slot.dataset.id;
+                this.selecionarItem(itemId, 'inventario');
+            });
+        });
+    }
+
+    /**
+     * Verifica se um item está equipado em algum herói
+     */
+    verificarItemEquipado(itemId) {
+        if (!this.saveData?.equipamentos) return false;
+
+        for (const heroi of Object.values(this.saveData.equipamentos)) {
+            if (Object.values(heroi).includes(itemId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Seleciona um item e mostra detalhes
+     */
+    selecionarItem(itemId, contexto = 'inventario') {
+        const item = this.itemsData?.items?.find(i => i.id === itemId);
+        if (!item) return;
+
+        this.itemSelecionado = item;
+
+        if (contexto === 'inventario') {
+            // Mostrar painel de detalhes do inventário
+            const panel = document.getElementById('item-details-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                document.getElementById('item-detail-icon').textContent = item.icon;
+                document.getElementById('item-detail-name').textContent = item.nome;
+
+                const rarityEl = document.getElementById('item-detail-rarity');
+                rarityEl.textContent = item.raridade;
+                rarityEl.className = `item-detail-rarity ${item.raridade}`;
+
+                document.getElementById('item-detail-desc').textContent = item.descricao;
+
+                // Stats
+                const statsContainer = document.getElementById('item-detail-stats');
+                statsContainer.innerHTML = this.renderizarStats(item.stats);
+
+                // Configurar botões
+                const useBtn = document.getElementById('use-item-btn');
+                if (item.tipo === 'consumivel') {
+                    useBtn.textContent = 'Usar';
+                    useBtn.style.display = 'block';
+                } else if (['arma', 'armadura', 'acessorio'].includes(item.tipo)) {
+                    useBtn.textContent = 'Equipar';
+                    useBtn.style.display = 'block';
+                } else {
+                    useBtn.style.display = 'none';
+                }
+            }
+
+            // Destacar item selecionado
+            document.querySelectorAll('#inventory-grid .item-slot').forEach(slot => {
+                slot.classList.toggle('selected', slot.dataset.id === itemId);
+            });
+        } else if (contexto === 'loja') {
+            // Mostrar preview da loja
+            const preview = document.getElementById('shop-preview');
+            if (preview) {
+                preview.classList.remove('hidden');
+                document.getElementById('shop-preview-icon').textContent = item.icon;
+                document.getElementById('shop-preview-name').textContent = item.nome;
+
+                const rarityEl = document.getElementById('shop-preview-rarity');
+                rarityEl.textContent = item.raridade;
+                rarityEl.className = `shop-preview-rarity ${item.raridade}`;
+
+                document.getElementById('shop-preview-desc').textContent = item.descricao;
+                document.getElementById('shop-preview-stats').innerHTML = this.renderizarStats(item.stats);
+                document.getElementById('shop-preview-price').textContent = item.preco;
+
+                // Verificar se pode comprar
+                const buyBtn = document.getElementById('buy-item-btn');
+                const ouro = this.saveData?.inventario?.ouro || 0;
+                buyBtn.disabled = ouro < item.preco;
+            }
+
+            // Destacar item selecionado
+            document.querySelectorAll('#shop-grid .item-slot').forEach(slot => {
+                slot.classList.toggle('selected', slot.dataset.id === itemId);
+            });
+        }
+    }
+
+    /**
+     * Renderiza stats de um item
+     */
+    renderizarStats(stats) {
+        if (!stats) return '<span class="stat-tag">Sem bônus</span>';
+
+        const statNames = {
+            ataque: '⚔️ Ataque',
+            defesa: '🛡️ Defesa',
+            magia: '🔮 Magia',
+            cura: '💚 Cura',
+            pvMax: '❤️ Vida',
+            paMax: '⚡ PA',
+            critico: '💥 Crítico',
+            evasao: '💨 Evasão'
+        };
+
+        return Object.entries(stats).map(([key, value]) => {
+            const nome = statNames[key] || key;
+            return `<span class="stat-tag positive">+${value} ${nome}</span>`;
+        }).join('');
+    }
+
+    /**
+     * Usa um item consumível ou equipa um equipamento
+     */
+    usarItem(item) {
+        if (item.tipo === 'consumivel') {
+            // Aplicar efeito do consumível
+            if (item.efeito?.tipo === 'cura') {
+                // Curar todos os heróis proporcionalmente
+                Object.keys(this.saveData.herois).forEach(heroiId => {
+                    const heroi = this.saveData.herois[heroiId];
+                    heroi.pv = Math.min(heroi.pvMax, heroi.pv + Math.floor(item.efeito.valor / 4));
+                });
+                this.mostrarMensagem(`Usou ${item.nome}! Heróis curados.`);
+            }
+
+            // Remover item do inventário
+            const itemIndex = this.saveData.inventario.itens.findIndex(i => i.id === item.id);
+            if (itemIndex !== -1) {
+                this.saveData.inventario.itens[itemIndex].quantidade--;
+                if (this.saveData.inventario.itens[itemIndex].quantidade <= 0) {
+                    this.saveData.inventario.itens.splice(itemIndex, 1);
+                }
+            }
+
+            // Salvar e atualizar
+            this.saveManager.salvar(this.saveData);
+            this.renderizarInventario();
+            document.getElementById('item-details-panel')?.classList.add('hidden');
+        } else if (['arma', 'armadura', 'acessorio'].includes(item.tipo)) {
+            // Equipar item
+            this.equiparItem(item);
+        }
+    }
+
+    /**
+     * Equipa um item em um herói
+     */
+    equiparItem(item) {
+        const heroiId = this.heroiEquipSelecionado;
+
+        // Verificar se o herói pode usar o item
+        if (item.classes && !item.classes.includes(heroiId)) {
+            this.mostrarMensagem(`${this.capitalize(heroiId)} não pode usar este item!`);
+            return;
+        }
+
+        // Desequipar item anterior se houver
+        const slotTipo = item.tipo;
+        const itemAnterior = this.saveData.equipamentos[heroiId][slotTipo];
+
+        // Equipar novo item
+        this.saveData.equipamentos[heroiId][slotTipo] = item.id;
+
+        // Salvar e atualizar
+        this.saveManager.salvar(this.saveData);
+        this.renderizarInventario();
+        this.renderizarEquipamentos();
+
+        this.mostrarMensagem(`${item.nome} equipado em ${this.capitalize(heroiId)}!`);
+        document.getElementById('item-details-panel')?.classList.add('hidden');
+    }
+
+    /**
+     * Vende um item
+     */
+    venderItem(item) {
+        const precoVenda = Math.floor(item.preco * 0.5);
+
+        // Verificar se item está equipado
+        if (this.verificarItemEquipado(item.id)) {
+            this.mostrarMensagem('Desequipe o item antes de vender!');
+            return;
+        }
+
+        // Remover item do inventário
+        const itemIndex = this.saveData.inventario.itens.findIndex(i => i.id === item.id);
+        if (itemIndex !== -1) {
+            this.saveData.inventario.itens[itemIndex].quantidade--;
+            if (this.saveData.inventario.itens[itemIndex].quantidade <= 0) {
+                this.saveData.inventario.itens.splice(itemIndex, 1);
+            }
+        }
+
+        // Adicionar ouro
+        this.saveData.inventario.ouro += precoVenda;
+
+        // Salvar e atualizar
+        this.saveManager.salvar(this.saveData);
+        this.atualizarDisplayOuro();
+        this.renderizarInventario();
+        document.getElementById('item-details-panel')?.classList.add('hidden');
+
+        this.mostrarMensagem(`Vendeu ${item.nome} por ${precoVenda} 🪙`);
+    }
+
+    /**
+     * Compra um item da loja
+     */
+    comprarItem(item) {
+        const ouro = this.saveData?.inventario?.ouro || 0;
+
+        if (ouro < item.preco) {
+            this.mostrarMensagem('Ouro insuficiente!');
+            return;
+        }
+
+        // Remover ouro
+        this.saveData.inventario.ouro -= item.preco;
+
+        // Adicionar item ao inventário
+        const itemExistente = this.saveData.inventario.itens.find(i => i.id === item.id);
+        if (itemExistente) {
+            itemExistente.quantidade++;
+        } else {
+            this.saveData.inventario.itens.push({ id: item.id, quantidade: 1 });
+        }
+
+        // Salvar e atualizar
+        this.saveManager.salvar(this.saveData);
+        this.atualizarDisplayOuro();
+        this.renderizarInventario();
+
+        // Atualizar botão de compra
+        const buyBtn = document.getElementById('buy-item-btn');
+        if (buyBtn) {
+            buyBtn.disabled = this.saveData.inventario.ouro < item.preco;
+        }
+
+        this.mostrarMensagem(`Comprou ${item.nome}!`);
+    }
+
+    /**
+     * Renderiza a loja
+     */
+    renderizarLoja() {
+        const container = document.getElementById('shop-grid');
+        if (!container || !this.itemsData) return;
+
+        const itens = this.itemsData.items || [];
+        const filtro = this.filtroAtual;
+
+        // Aplicar filtro
+        const itensFiltrados = filtro === 'todos'
+            ? itens
+            : itens.filter(item => item.tipo === filtro);
+
+        container.innerHTML = itensFiltrados.map(item => `
+            <div class="item-slot" data-id="${item.id}" data-rarity="${item.raridade}">
+                <span class="item-icon">${item.icon}</span>
+                <span class="item-name">${item.nome}</span>
+                <span class="item-quantity">🪙${item.preco}</span>
+            </div>
+        `).join('');
+
+        // Adicionar event listeners
+        container.querySelectorAll('.item-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                const itemId = slot.dataset.id;
+                this.selecionarItem(itemId, 'loja');
+            });
+        });
+    }
+
+    /**
+     * Renderiza a aba de equipamentos
+     */
+    renderizarEquipamentos() {
+        const heroiId = this.heroiEquipSelecionado;
+        const equipamentos = this.saveData?.equipamentos?.[heroiId] || {};
+        const heroiStats = this.saveData?.herois?.[heroiId] || {};
+
+        // Atualizar slots de equipamento
+        ['arma', 'armadura', 'acessorio'].forEach(slot => {
+            const slotElement = document.getElementById(`slot-${slot}`);
+            if (!slotElement) return;
+
+            const itemId = equipamentos[slot];
+            const item = itemId ? this.itemsData?.items?.find(i => i.id === itemId) : null;
+
+            if (item) {
+                slotElement.classList.remove('empty');
+                slotElement.classList.add('equipped');
+                slotElement.innerHTML = `
+                    <span class="slot-icon">${item.icon}</span>
+                    <span class="slot-text">${item.nome}</span>
+                `;
+                // Adicionar click para desequipar
+                slotElement.onclick = () => this.desequiparItem(heroiId, slot);
+            } else {
+                slotElement.classList.add('empty');
+                slotElement.classList.remove('equipped');
+                const defaultIcons = { arma: '🗡️', armadura: '🛡️', acessorio: '💍' };
+                slotElement.innerHTML = `
+                    <span class="slot-icon">${defaultIcons[slot]}</span>
+                    <span class="slot-text">Vazio</span>
+                `;
+                slotElement.onclick = null;
+            }
+        });
+
+        // Calcular e exibir stats do herói
+        this.atualizarStatsHeroi(heroiId);
+
+        // Renderizar itens equipáveis
+        this.renderizarItensEquipaveis(heroiId);
+    }
+
+    /**
+     * Desequipa um item de um herói
+     */
+    desequiparItem(heroiId, slot) {
+        if (this.saveData.equipamentos[heroiId][slot]) {
+            this.saveData.equipamentos[heroiId][slot] = null;
+            this.saveManager.salvar(this.saveData);
+            this.renderizarEquipamentos();
+            this.renderizarInventario();
+            this.mostrarMensagem('Item desequipado!');
+        }
+    }
+
+    /**
+     * Atualiza as stats exibidas do herói
+     */
+    atualizarStatsHeroi(heroiId) {
+        const heroi = this.saveData?.herois?.[heroiId] || {};
+        const equipamentos = this.saveData?.equipamentos?.[heroiId] || {};
+
+        let bonusAtaque = 0;
+        let bonusDefesa = 0;
+        let bonusPv = 0;
+
+        // Calcular bônus dos equipamentos
+        Object.values(equipamentos).forEach(itemId => {
+            if (!itemId) return;
+            const item = this.itemsData?.items?.find(i => i.id === itemId);
+            if (item?.stats) {
+                bonusAtaque += item.stats.ataque || 0;
+                bonusDefesa += item.stats.defesa || 0;
+                bonusPv += item.stats.pvMax || 0;
+            }
+        });
+
+        // Exibir stats
+        const pvTotal = (heroi.pvMax || 20) + bonusPv;
+        document.getElementById('equip-stat-pv')?.textContent &&
+            (document.getElementById('equip-stat-pv').textContent = pvTotal);
+        document.getElementById('equip-stat-ataque')?.textContent &&
+            (document.getElementById('equip-stat-ataque').textContent = bonusAtaque);
+        document.getElementById('equip-stat-defesa')?.textContent &&
+            (document.getElementById('equip-stat-defesa').textContent = bonusDefesa);
+    }
+
+    /**
+     * Renderiza itens equipáveis para o herói selecionado
+     */
+    renderizarItensEquipaveis(heroiId) {
+        const container = document.getElementById('equip-items-grid');
+        if (!container) return;
+
+        const itensInventario = this.saveData?.inventario?.itens || [];
+        const tiposEquipaveis = ['arma', 'armadura', 'acessorio'];
+
+        // Filtrar itens equipáveis
+        const itensEquipaveis = itensInventario
+            .map(item => {
+                const dados = this.itemsData?.items?.find(i => i.id === item.id);
+                return dados ? { ...dados, quantidade: item.quantidade } : null;
+            })
+            .filter(item => {
+                if (!item) return false;
+                if (!tiposEquipaveis.includes(item.tipo)) return false;
+                if (item.classes && !item.classes.includes(heroiId)) return false;
+                return true;
+            });
+
+        if (itensEquipaveis.length === 0) {
+            container.innerHTML = `
+                <div class="empty-inventory" style="grid-column: 1/-1;">
+                    <span class="empty-inventory-text">Nenhum item para equipar</span>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = itensEquipaveis.map(item => {
+            const equipado = this.saveData.equipamentos[heroiId][item.tipo] === item.id;
+            return `
+                <div class="item-slot ${equipado ? 'selected' : ''}" data-id="${item.id}" data-rarity="${item.raridade}">
+                    <span class="item-icon">${item.icon}</span>
+                    <span class="item-name">${item.nome}</span>
+                    ${equipado ? `<span class="item-equipped-badge">✓</span>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Adicionar event listeners
+        container.querySelectorAll('.item-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                const itemId = slot.dataset.id;
+                const item = this.itemsData?.items?.find(i => i.id === itemId);
+                if (item) {
+                    this.equiparItem(item);
+                }
+            });
+        });
+    }
+
+    /**
+     * Capitaliza a primeira letra
+     */
+    capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }
 

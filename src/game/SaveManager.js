@@ -72,10 +72,22 @@ export class SaveManager {
                 tempoJogado: 0
             },
 
-            // Inventário (para futuro)
+            // Inventário
             inventario: {
-                ouro: 0,
-                itens: []
+                ouro: 100, // Ouro inicial
+                itens: [
+                    // Itens iniciais para teste
+                    { id: 'pocao_cura_pequena', quantidade: 3 },
+                    { id: 'espada_ferro', quantidade: 1 }
+                ]
+            },
+
+            // Equipamentos por herói
+            equipamentos: {
+                guerreiro: { arma: null, armadura: null, acessorio: null },
+                mago: { arma: null, armadura: null, acessorio: null },
+                ladino: { arma: null, armadura: null, acessorio: null },
+                clerigo: { arma: null, armadura: null, acessorio: null }
             }
         };
     }
@@ -157,7 +169,13 @@ export class SaveManager {
                 clerigo: { ...defaultSave.herois.clerigo, ...oldSave.herois?.clerigo }
             },
             estatisticas: { ...defaultSave.estatisticas, ...oldSave.estatisticas },
-            inventario: { ...defaultSave.inventario, ...oldSave.inventario }
+            inventario: { ...defaultSave.inventario, ...oldSave.inventario },
+            equipamentos: {
+                guerreiro: { ...defaultSave.equipamentos.guerreiro, ...oldSave.equipamentos?.guerreiro },
+                mago: { ...defaultSave.equipamentos.mago, ...oldSave.equipamentos?.mago },
+                ladino: { ...defaultSave.equipamentos.ladino, ...oldSave.equipamentos?.ladino },
+                clerigo: { ...defaultSave.equipamentos.clerigo, ...oldSave.equipamentos?.clerigo }
+            }
         };
     }
 

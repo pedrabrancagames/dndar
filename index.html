@@ -73,6 +73,11 @@
           <span class="btn-icon">👤</span>
           <span class="btn-text">Perfil</span>
         </button>
+        <button class="menu-btn inventory-btn" id="btn-inventory">
+          <span class="btn-icon">🎒</span>
+          <span class="btn-text">Inventário</span>
+          <span class="gold-badge" id="home-gold-display">0 🪙</span>
+        </button>
         <button class="menu-btn" id="btn-settings">
           <span class="btn-icon">⚙️</span>
           <span class="btn-text">Configurações</span>
@@ -498,6 +503,166 @@
           </div>
         </section>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Screen -->
+  <div id="inventory-screen" class="screen">
+    <div class="inventory-container">
+      <header class="inventory-header">
+        <button class="back-btn" id="inventory-back">← Voltar</button>
+        <h2>🎒 Inventário</h2>
+        <div class="gold-display">
+          <span class="gold-icon">🪙</span>
+          <span class="gold-amount" id="inventory-gold">0</span>
+        </div>
+      </header>
+
+      <!-- Inventory Tabs -->
+      <div class="inventory-tabs">
+        <button class="inv-tab active" data-tab="items">📦 Itens</button>
+        <button class="inv-tab" data-tab="equip">⚔️ Equipar</button>
+        <button class="inv-tab" data-tab="shop">🛒 Loja</button>
+      </div>
+
+      <!-- Items Tab Content -->
+      <div class="inventory-content" id="inventory-items-tab">
+        <!-- Category Filters -->
+        <div class="item-filters">
+          <button class="filter-btn active" data-filter="todos">Todos</button>
+          <button class="filter-btn" data-filter="arma">Armas</button>
+          <button class="filter-btn" data-filter="armadura">Armaduras</button>
+          <button class="filter-btn" data-filter="acessorio">Acessórios</button>
+          <button class="filter-btn" data-filter="consumivel">Consumíveis</button>
+        </div>
+
+        <!-- Items Grid -->
+        <div class="items-grid" id="inventory-grid">
+          <!-- Items will be populated by JavaScript -->
+        </div>
+
+        <!-- Item Details Panel -->
+        <div class="item-details-panel hidden" id="item-details-panel">
+          <div class="item-detail-header">
+            <span class="item-detail-icon" id="item-detail-icon">🗡️</span>
+            <div class="item-detail-info">
+              <h4 id="item-detail-name">Nome do Item</h4>
+              <span class="item-detail-rarity" id="item-detail-rarity">Comum</span>
+            </div>
+            <button class="close-panel-btn" id="close-item-details">✕</button>
+          </div>
+          <p class="item-detail-desc" id="item-detail-desc">Descrição do item...</p>
+          <div class="item-detail-stats" id="item-detail-stats">
+            <!-- Stats will be populated by JavaScript -->
+          </div>
+          <div class="item-detail-actions">
+            <button class="use-item-btn" id="use-item-btn">Usar</button>
+            <button class="sell-item-btn" id="sell-item-btn">Vender</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equip Tab Content -->
+      <div class="inventory-content hidden" id="inventory-equip-tab">
+        <div class="equip-heroes-select">
+          <button class="hero-select-btn active" data-hero="guerreiro">⚔️ Guerreiro</button>
+          <button class="hero-select-btn" data-hero="mago">🔮 Mago</button>
+          <button class="hero-select-btn" data-hero="ladino">🗡️ Ladino</button>
+          <button class="hero-select-btn" data-hero="clerigo">✝️ Clérigo</button>
+        </div>
+
+        <div class="equip-panel">
+          <!-- Hero Equipment Slots -->
+          <div class="equip-slots">
+            <div class="equip-slot" data-slot="arma">
+              <span class="slot-label">Arma</span>
+              <div class="slot-item empty" id="slot-arma">
+                <span class="slot-icon">🗡️</span>
+                <span class="slot-text">Vazio</span>
+              </div>
+            </div>
+            <div class="equip-slot" data-slot="armadura">
+              <span class="slot-label">Armadura</span>
+              <div class="slot-item empty" id="slot-armadura">
+                <span class="slot-icon">🛡️</span>
+                <span class="slot-text">Vazio</span>
+              </div>
+            </div>
+            <div class="equip-slot" data-slot="acessorio">
+              <span class="slot-label">Acessório</span>
+              <div class="slot-item empty" id="slot-acessorio">
+                <span class="slot-icon">💍</span>
+                <span class="slot-text">Vazio</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Stats Preview -->
+          <div class="equip-hero-stats" id="equip-hero-stats">
+            <h4>Estatísticas</h4>
+            <div class="hero-stats-list">
+              <div class="hero-stat-item">
+                <span>❤️ Vida</span>
+                <span id="equip-stat-pv">20</span>
+              </div>
+              <div class="hero-stat-item">
+                <span>⚔️ Ataque</span>
+                <span id="equip-stat-ataque">0</span>
+              </div>
+              <div class="hero-stat-item">
+                <span>🛡️ Defesa</span>
+                <span id="equip-stat-defesa">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Items to Equip -->
+        <div class="equip-available">
+          <h4>Itens Disponíveis</h4>
+          <div class="equip-items-grid" id="equip-items-grid">
+            <!-- Equipable items will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Shop Tab Content -->
+      <div class="inventory-content hidden" id="inventory-shop-tab">
+        <div class="shop-header">
+          <p class="shop-welcome">Bem-vindo à loja do Bairro Esquecido!</p>
+        </div>
+
+        <!-- Shop Category Filters -->
+        <div class="item-filters">
+          <button class="filter-btn active" data-filter="todos">Todos</button>
+          <button class="filter-btn" data-filter="arma">Armas</button>
+          <button class="filter-btn" data-filter="armadura">Armaduras</button>
+          <button class="filter-btn" data-filter="acessorio">Acessórios</button>
+          <button class="filter-btn" data-filter="consumivel">Consumíveis</button>
+        </div>
+
+        <!-- Shop Items Grid -->
+        <div class="shop-grid" id="shop-grid">
+          <!-- Shop items will be populated by JavaScript -->
+        </div>
+
+        <!-- Shop Item Preview -->
+        <div class="shop-preview hidden" id="shop-preview">
+          <div class="shop-preview-header">
+            <span class="shop-preview-icon" id="shop-preview-icon">🗡️</span>
+            <div>
+              <h4 id="shop-preview-name">Nome do Item</h4>
+              <span class="shop-preview-rarity" id="shop-preview-rarity">Comum</span>
+            </div>
+          </div>
+          <p id="shop-preview-desc">Descrição...</p>
+          <div class="shop-preview-stats" id="shop-preview-stats"></div>
+          <div class="shop-preview-action">
+            <span class="shop-price">🪙 <span id="shop-preview-price">0</span></span>
+            <button class="buy-btn" id="buy-item-btn">Comprar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
