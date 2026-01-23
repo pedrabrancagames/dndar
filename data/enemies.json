@@ -4,7 +4,7 @@
             "id": "sombra_menor",
             "nome": "Sombra Menor",
             "tipo": "sombra",
-            "modelo": "placeholder-monster.glb",
+            "modelo": "shadow.glb",
             "escala": 1.0,
             "stats": {
                 "pvMax": 8,
@@ -525,6 +525,39 @@
             },
             "recompensas": {
                 "xp": 70
+            }
+        },
+        {
+            "id": "aranha_gigante",
+            "nome": "Aranha Gigante",
+            "tipo": "besta",
+            "modelo": "giant_spider.glb",
+            "escala": 1.2,
+            "stats": {
+                "pvMax": 26,
+                "pv": 26,
+                "defesa": 2,
+                "ataque": 5
+            },
+            "ataques": [
+                {
+                    "nome": "Mordida Venenosa",
+                    "dano": 6,
+                    "dados": "1d8",
+                    "status": "envenenado"
+                },
+                {
+                    "nome": "Teia",
+                    "dano": 0,
+                    "status": "preso"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "normal"
+            },
+            "recompensas": {
+                "xp": 50
             }
         }
     ]
