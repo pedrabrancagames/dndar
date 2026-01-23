@@ -82,6 +82,7 @@ class Game {
         // Configurar callbacks das novas telas
         this.setupSettingsCallbacks();
         this.setupMissionCallbacks();
+        this.setupMapCallbacks();
 
         this.atualizarLoading(85, 'Carregando sons...');
 
@@ -140,7 +141,10 @@ class Game {
         // Menu principal - Combate será configurado em setupMissionCallbacks
         // NÃO adicionar listener para btnCombat aqui para evitar duplicação
         this.elementos.btnGameMaster?.addEventListener('click', () => this.mostrarBriefing());
-        this.elementos.btnMap?.addEventListener('click', () => this.mostrarMensagem('Mapa em desenvolvimento...'));
+        this.elementos.btnMap?.addEventListener('click', () => {
+            this.irParaTela('map');
+            this.renderizarMapa();
+        });
         this.elementos.btnProfile?.addEventListener('click', () => this.mostrarMensagem('Perfil em desenvolvimento...'));
         this.elementos.btnSettings?.addEventListener('click', () => this.abrirConfiguracoes());
         this.elementos.closeSettings?.addEventListener('click', () => this.fecharConfiguracoes());
@@ -1036,6 +1040,208 @@ class Game {
 
         const configInimigos = this.campaignManager.getInimigosParaCombate();
         this.combatManager.iniciarCombate(configInimigos);
+    }
+
+    /**
+     * Configura callbacks da tela de mapa
+     */
+    setupMapCallbacks() {
+        // Botão voltar do mapa
+        document.getElementById('map-back')?.addEventListener('click', () => {
+            this.irParaTela('home');
+        });
+
+        // Toggle da legenda
+        const legendToggle = document.getElementById('map-legend-toggle');
+        const legend = document.getElementById('map-legend');
+        legendToggle?.addEventListener('click', () => {
+            legend?.classList.toggle('hidden');
+        });
+
+        // Botão explorar
+        document.getElementById('explore-location-btn')?.addEventListener('click', () => {
+            if (this.localSelecionadoMapa) {
+                this.missaoSelecionada = this.localSelecionadoMapa;
+                this.iniciarMissao(this.localSelecionadoMapa);
+            }
+        });
+
+        // Inicializar propriedade
+        this.localSelecionadoMapa = null;
+    }
+
+    /**
+     * Renderiza o mapa interativo com as localizações das missões
+     */
+    renderizarMapa() {
+        const mapLocations = document.getElementById('map-locations');
+        const mapPaths = document.getElementById('map-paths');
+        if (!mapLocations) return;
+
+        // Obter missões e progresso
+        const missoes = this.campaignManager.getMissoesDisponiveis(this.saveData);
+
+        // Limpar elementos anteriores
+        mapLocations.innerHTML = '';
+        if (mapPaths) mapPaths.innerHTML = '';
+
+        // Definir posições dos locais no mapa (em porcentagem)
+        // Layout em forma de caminho serpenteante
+        const posicoes = [
+            { x: 20, y: 20, icon: '🏚️', nome: 'Ruínas' },      // Missão 1
+            { x: 70, y: 25, icon: '🌲', nome: 'Floresta' },     // Missão 2
+            { x: 30, y: 50, icon: '⚰️', nome: 'Cemitério' },    // Missão 3
+            { x: 75, y: 60, icon: '🏛️', nome: 'Cripta' },       // Missão 4
+            { x: 50, y: 85, icon: '🌙', nome: 'Ritual' }        // Missão 5 (Boss)
+        ];
+
+        // Desenhar caminhos entre locais
+        this.desenharCaminhos(mapPaths, posicoes, missoes);
+
+        // Criar marcadores de localização
+        missoes.forEach((missao, index) => {
+            if (index >= posicoes.length) return;
+
+            const pos = posicoes[index];
+            const marker = document.createElement('div');
+            marker.className = 'location-marker';
+            marker.dataset.missionId = missao.id;
+
+            // Aplicar classes de estado
+            if (missao.completa) {
+                marker.classList.add('complete');
+            } else if (missao.disponivel) {
+                marker.classList.add('available');
+            } else {
+                marker.classList.add('locked');
+            }
+
+            if (missao.boss) {
+                marker.classList.add('boss');
+            }
+
+            // Posicionar marcador
+            marker.style.left = `${pos.x}%`;
+            marker.style.top = `${pos.y}%`;
+
+            // Ícone do status
+            let statusIcon = '⚔️';
+            if (missao.completa) statusIcon = '✅';
+            else if (!missao.disponivel) statusIcon = '🔒';
+            else if (missao.boss) statusIcon = '💀';
+
+            marker.innerHTML = `
+                <div class="marker-icon">${pos.icon}</div>
+                <span class="marker-label">${pos.nome}</span>
+                <span class="marker-status">${statusIcon}</span>
+            `;
+
+            // Evento de clique
+            if (missao.disponivel) {
+                marker.addEventListener('click', () => {
+                    this.selecionarLocalNoMapa(missao, marker);
+                });
+            } else {
+                marker.style.cursor = 'not-allowed';
+            }
+
+            mapLocations.appendChild(marker);
+        });
+
+        // Resetar painel de detalhes
+        this.resetarPainelMapa();
+    }
+
+    /**
+     * Desenha os caminhos conectando os locais no mapa
+     */
+    desenharCaminhos(svgElement, posicoes, missoes) {
+        if (!svgElement || posicoes.length < 2) return;
+
+        for (let i = 0; i < posicoes.length - 1; i++) {
+            const de = posicoes[i];
+            const para = posicoes[i + 1];
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+            // Criar curva bezier suave entre pontos
+            const ctrlX1 = de.x + (para.x - de.x) * 0.3;
+            const ctrlY1 = de.y;
+            const ctrlX2 = para.x - (para.x - de.x) * 0.3;
+            const ctrlY2 = para.y;
+
+            path.setAttribute('d', `M ${de.x} ${de.y} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${para.x} ${para.y}`);
+            path.classList.add('map-path');
+
+            // Adicionar classes baseadas no estado das missões
+            const missaoDe = missoes[i];
+            const missaoPara = missoes[i + 1];
+
+            if (missaoDe?.completa) {
+                path.classList.add('complete');
+            }
+            if (missaoPara?.disponivel && !missaoPara?.completa) {
+                path.classList.add('active');
+            }
+
+            svgElement.appendChild(path);
+        }
+    }
+
+    /**
+     * Seleciona um local no mapa e mostra seus detalhes
+     */
+    selecionarLocalNoMapa(missao, markerElement) {
+        this.localSelecionadoMapa = missao;
+
+        // Atualizar seleção visual
+        document.querySelectorAll('.location-marker').forEach(m => m.classList.remove('selected'));
+        markerElement.classList.add('selected');
+
+        // Atualizar painel de detalhes
+        const title = document.getElementById('map-location-title');
+        const description = document.getElementById('map-location-description');
+        const difficulty = document.getElementById('map-location-difficulty');
+        const rewards = document.getElementById('map-location-rewards');
+        const info = document.getElementById('map-location-info');
+        const exploreBtn = document.getElementById('explore-location-btn');
+
+        if (title) title.textContent = missao.nome;
+        if (description) description.textContent = missao.briefing || missao.descricao;
+
+        // Traduzir dificuldade
+        const dificuldades = {
+            'facil': '⭐ Fácil',
+            'medio': '⭐⭐ Médio',
+            'dificil': '⭐⭐⭐ Difícil',
+            'boss': '💀 Chefe'
+        };
+
+        if (difficulty) difficulty.textContent = dificuldades[missao.dificuldade] || missao.dificuldade;
+        if (rewards) rewards.textContent = `🪙 ${missao.recompensas?.xp || 0} XP`;
+        if (info) info.style.display = 'flex';
+
+        if (exploreBtn) {
+            exploreBtn.disabled = !missao.disponivel || missao.completa;
+            exploreBtn.textContent = missao.completa ? 'Concluída' : 'Explorar';
+        }
+    }
+
+    /**
+     * Reseta o painel de detalhes do mapa para estado inicial
+     */
+    resetarPainelMapa() {
+        this.localSelecionadoMapa = null;
+
+        const title = document.getElementById('map-location-title');
+        const description = document.getElementById('map-location-description');
+        const info = document.getElementById('map-location-info');
+        const exploreBtn = document.getElementById('explore-location-btn');
+
+        if (title) title.textContent = 'Selecione uma Localização';
+        if (description) description.textContent = 'Toque em um local no mapa para ver detalhes.';
+        if (info) info.style.display = 'none';
+        if (exploreBtn) exploreBtn.disabled = true;
     }
 
     /**

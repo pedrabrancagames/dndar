@@ -334,6 +334,75 @@
     </div>
   </div>
 
+  <!-- Map Screen -->
+  <div id="map-screen" class="screen">
+    <div class="map-container">
+      <header class="map-header">
+        <button class="back-btn" id="map-back">← Voltar</button>
+        <h2>🗺️ Bairro Esquecido</h2>
+        <div class="map-legend-btn" id="map-legend-toggle">
+          <span>ℹ️</span>
+        </div>
+      </header>
+
+      <!-- Map Legend (toggleable) -->
+      <div class="map-legend hidden" id="map-legend">
+        <h4>Legenda</h4>
+        <div class="legend-item">
+          <span class="legend-icon locked">🔒</span>
+          <span>Bloqueada</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon available">⚔️</span>
+          <span>Disponível</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon complete">✅</span>
+          <span>Concluída</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon boss">💀</span>
+          <span>Chefe</span>
+        </div>
+      </div>
+
+      <!-- Interactive Map Area -->
+      <div class="map-viewport" id="map-viewport">
+        <div class="map-canvas" id="map-canvas">
+          <!-- Map Background Decoration -->
+          <div class="map-decoration">
+            <div class="fog fog-1"></div>
+            <div class="fog fog-2"></div>
+            <div class="fog fog-3"></div>
+          </div>
+
+          <!-- Path Connections SVG -->
+          <svg class="map-paths" id="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <!-- Paths will be drawn by JavaScript -->
+          </svg>
+
+          <!-- Location Markers -->
+          <div class="map-locations" id="map-locations">
+            <!-- Location markers will be inserted by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Location Details -->
+      <div class="map-location-panel" id="map-location-panel">
+        <div class="panel-content">
+          <h3 id="map-location-title">Selecione uma Localização</h3>
+          <p id="map-location-description">Toque em um local no mapa para ver detalhes.</p>
+          <div class="location-info" id="map-location-info" style="display: none;">
+            <span id="map-location-difficulty"></span>
+            <span id="map-location-rewards"></span>
+          </div>
+          <button class="explore-btn" id="explore-location-btn" disabled>Explorar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script type="module" src="src/main.js"></script>
 </body>
