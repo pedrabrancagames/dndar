@@ -689,6 +689,61 @@
     </div>
   </div>
 
+  <!-- Level Up Modal -->
+  <div id="level-up-modal" class="modal hidden">
+    <div class="level-up-overlay">
+      <div class="level-up-content">
+        <!-- Hero Icon & Level -->
+        <div class="level-up-header">
+          <div class="level-up-glow"></div>
+          <div class="level-up-hero-icon" id="level-up-hero-icon">⚔️</div>
+          <div class="level-up-badge">
+            <span class="level-up-text">LEVEL UP!</span>
+            <span class="level-up-hero-name" id="level-up-hero-name">Guerreiro</span>
+          </div>
+          <div class="level-up-level">
+            <span class="old-level" id="level-up-old-level">Nv 1</span>
+            <span class="level-arrow">→</span>
+            <span class="new-level" id="level-up-new-level">Nv 2</span>
+          </div>
+        </div>
+
+        <!-- Stats Gained -->
+        <div class="level-up-stats">
+          <h3>📈 Atributos Aprimorados</h3>
+          <div class="stats-gained-grid" id="level-up-stats-grid">
+            <!-- Stats will be populated by JavaScript -->
+          </div>
+        </div>
+
+        <!-- New Card Unlocked (if any) -->
+        <div class="level-up-card hidden" id="level-up-card-section">
+          <h3>🃏 Nova Carta Desbloqueada!</h3>
+          <div class="new-card-display">
+            <div class="new-card-icon" id="new-card-icon">🔥</div>
+            <div class="new-card-info">
+              <span class="new-card-name" id="new-card-name">Nova Habilidade</span>
+              <span class="new-card-desc" id="new-card-desc">Descrição da nova carta...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP Progress -->
+        <div class="level-up-xp">
+          <span class="xp-text">Próximo Nível:</span>
+          <div class="xp-progress-bar">
+            <div class="xp-progress-fill" id="level-up-xp-fill" style="width: 0%"></div>
+          </div>
+          <span class="xp-value" id="level-up-xp-value">0 / 150 XP</span>
+        </div>
+
+        <!-- Continue Button -->
+        <button class="level-up-continue" id="level-up-continue">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Scripts -->
   <script type="module" src="src/main.js"></script>
 </body>

@@ -1376,11 +1376,17 @@ class Game {
     /**
      * Salva progresso após vitória
      */
-    salvarProgressoVitoria(recompensas) {
-        // Adicionar XP a todos os heróis
+    async salvarProgressoVitoria(recompensas) {
+        // Adicionar XP a todos os heróis e coletar level ups
         const xpPorHeroi = Math.floor(recompensas.xp / 4);
+        const todosLevelUps = [];
+
         ['guerreiro', 'mago', 'ladino', 'clerigo'].forEach(heroiId => {
-            this.saveData = this.saveManager.adicionarXP(heroiId, xpPorHeroi, this.saveData);
+            const resultado = this.saveManager.adicionarXP(heroiId, xpPorHeroi, this.saveData);
+            this.saveData = resultado.saveData;
+            if (resultado.levelUps.length > 0) {
+                todosLevelUps.push(...resultado.levelUps);
+            }
         });
 
         // Marcar missão como completa
@@ -1405,6 +1411,129 @@ class Game {
 
         // Salvar
         this.saveManager.salvar(this.saveData);
+
+        // Mostrar modais de level up sequencialmente
+        if (todosLevelUps.length > 0) {
+            await this.mostrarLevelUps(todosLevelUps);
+        }
+    }
+
+    /**
+     * Mostra modais de level up sequencialmente
+     */
+    async mostrarLevelUps(levelUps) {
+        for (const levelUp of levelUps) {
+            await this.mostrarModalLevelUp(levelUp);
+        }
+    }
+
+    /**
+     * Mostra modal de level up para um herói específico
+     */
+    mostrarModalLevelUp(levelUp) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('level-up-modal');
+            if (!modal) {
+                resolve();
+                return;
+            }
+
+            // Dados dos heróis
+            const heroiInfo = {
+                guerreiro: { nome: 'Guerreiro', icon: '⚔️' },
+                mago: { nome: 'Mago', icon: '🔮' },
+                ladino: { nome: 'Ladino', icon: '🗡️' },
+                clerigo: { nome: 'Clérigo', icon: '✝️' }
+            };
+
+            // Dados das cartas desbloqueáveis
+            const cartasInfo = {
+                // Guerreiro
+                shield_bash: { nome: 'Bater com Escudo', icon: '🛡️', desc: 'Golpeia com o escudo, atordoando o inimigo' },
+                whirlwind: { nome: 'Redemoinho', icon: '🌀', desc: 'Ataca todos os inimigos próximos' },
+                second_wind: { nome: 'Segundo Fôlego', icon: '💨', desc: 'Recupera parte da vida em combate' },
+                berserker_rage: { nome: 'Fúria Berserker', icon: '😤', desc: 'Aumenta massivamente o dano por 2 turnos' },
+                // Mago
+                ice_wall: { nome: 'Muralha de Gelo', icon: '🧊', desc: 'Cria barreira que absorve dano' },
+                teleport: { nome: 'Teleporte', icon: '✨', desc: 'Evade o próximo ataque automaticamente' },
+                arcane_explosion: { nome: 'Explosão Arcana', icon: '💥', desc: 'Dano massivo em área' },
+                time_stop: { nome: 'Parar o Tempo', icon: '⏱️', desc: 'Pula o turno de todos os inimigos' },
+                // Ladino
+                smoke_bomb: { nome: 'Bomba de Fumaça', icon: '💨', desc: 'Todos os heróis ganham evasão' },
+                shadow_step: { nome: 'Passo Sombrio', icon: '👤', desc: 'Aumenta chance de crítico drasticamente' },
+                fan_of_knives: { nome: 'Leque de Facas', icon: '🔪', desc: 'Atinge todos os inimigos com veneno' },
+                death_mark: { nome: 'Marca da Morte', icon: '💀', desc: 'Próximo ataque causa dano dobrado' },
+                // Clérigo
+                holy_smite: { nome: 'Golpe Sagrado', icon: '⚡', desc: 'Dano sagrado com bônus contra mortos-vivos' },
+                mass_heal: { nome: 'Cura em Massa', icon: '💚', desc: 'Cura todos os heróis' },
+                divine_intervention: { nome: 'Intervenção Divina', icon: '👼', desc: 'Protege um aliado de dano letal' },
+                angel_summon: { nome: 'Invocar Anjo', icon: '😇', desc: 'Cura massiva e remove debuffs de todos' }
+            };
+
+            const heroi = heroiInfo[levelUp.heroiId] || { nome: 'Herói', icon: '🛡️' };
+            const heroiSave = this.saveData.herois[levelUp.heroiId];
+
+            // Atualizar elementos do modal
+            document.getElementById('level-up-hero-icon').textContent = heroi.icon;
+            document.getElementById('level-up-hero-name').textContent = heroi.nome;
+            document.getElementById('level-up-old-level').textContent = `Nv ${levelUp.novoNivel - 1}`;
+            document.getElementById('level-up-new-level').textContent = `Nv ${levelUp.novoNivel}`;
+
+            // Stats ganhos
+            const statsGrid = document.getElementById('level-up-stats-grid');
+            const stats = levelUp.statsGanhos;
+            let statsHtml = '';
+
+            if (stats.pvMax > 0) {
+                statsHtml += `<div class="stat-gained-item"><span class="stat-icon">❤️</span> Vida <span class="stat-gain">+${stats.pvMax}</span></div>`;
+            }
+            if (stats.paMax > 0) {
+                statsHtml += `<div class="stat-gained-item"><span class="stat-icon">⚡</span> PA <span class="stat-gain">+${stats.paMax}</span></div>`;
+            }
+            if (stats.ataque > 0) {
+                statsHtml += `<div class="stat-gained-item"><span class="stat-icon">⚔️</span> Ataque <span class="stat-gain">+${stats.ataque}</span></div>`;
+            }
+            if (stats.defesa > 0) {
+                statsHtml += `<div class="stat-gained-item"><span class="stat-icon">🛡️</span> Defesa <span class="stat-gain">+${stats.defesa}</span></div>`;
+            }
+
+            statsGrid.innerHTML = statsHtml;
+
+            // Nova carta (se houver)
+            const cardSection = document.getElementById('level-up-card-section');
+            if (levelUp.novaCarta && cartasInfo[levelUp.novaCarta]) {
+                const carta = cartasInfo[levelUp.novaCarta];
+                document.getElementById('new-card-icon').textContent = carta.icon;
+                document.getElementById('new-card-name').textContent = carta.nome;
+                document.getElementById('new-card-desc').textContent = carta.desc;
+                cardSection.classList.remove('hidden');
+            } else {
+                cardSection.classList.add('hidden');
+            }
+
+            // Barra de XP
+            const xpAtual = heroiSave.xp || 0;
+            const xpParaProximo = levelUp.xpParaProximo;
+            const xpPercent = (xpAtual / xpParaProximo) * 100;
+
+            document.getElementById('level-up-xp-fill').style.width = `${xpPercent}%`;
+            document.getElementById('level-up-xp-value').textContent = `${xpAtual} / ${xpParaProximo} XP`;
+
+            // Tocar som de level up
+            this.audioManager?.tocarAcao('buff');
+
+            // Mostrar modal
+            modal.classList.remove('hidden');
+
+            // Handler para fechar
+            const continueBtn = document.getElementById('level-up-continue');
+            const closeHandler = () => {
+                modal.classList.add('hidden');
+                continueBtn.removeEventListener('click', closeHandler);
+                resolve();
+            };
+            continueBtn.addEventListener('click', closeHandler);
+        });
     }
 
     /**
@@ -1430,10 +1559,18 @@ class Game {
         const nivelTotal = Object.values(herois).reduce((sum, h) => sum + (h.nivel || 1), 0);
         const nivelMedio = Math.floor(nivelTotal / 4);
 
-        // Calcular XP total
-        const xpTotal = Object.values(herois).reduce((sum, h) => sum + (h.xp || 0), 0);
-        const xpParaProximo = nivelMedio * 100;
-        const xpAtual = xpTotal % 100;
+        // Calcular XP médio (média do progresso de XP de cada herói)
+        let xpProgressoTotal = 0;
+        Object.values(herois).forEach(h => {
+            const xpAtualHeroi = h.xp || 0;
+            const xpParaProximoHeroi = this.saveManager.getXPParaProximoNivel(h.nivel || 1);
+            xpProgressoTotal += (xpAtualHeroi / xpParaProximoHeroi);
+        });
+        const xpProgressoMedio = (xpProgressoTotal / 4) * 100; // Porcentagem média
+
+        // XP para próximo nível do jogador é baseado no nível médio
+        const xpParaProximo = this.saveManager.getXPParaProximoNivel(nivelMedio);
+        const xpMedioAtual = Math.floor((xpProgressoMedio / 100) * xpParaProximo);
 
         // Atualizar card do jogador
         const playerLevel = document.getElementById('player-level');
@@ -1442,8 +1579,8 @@ class Game {
         const playerTitle = document.getElementById('player-title');
 
         if (playerLevel) playerLevel.textContent = `Nv ${nivelMedio}`;
-        if (playerXpFill) playerXpFill.style.width = `${(xpAtual / xpParaProximo) * 100}%`;
-        if (playerXpText) playerXpText.textContent = `${xpAtual}/${xpParaProximo} XP`;
+        if (playerXpFill) playerXpFill.style.width = `${xpProgressoMedio}%`;
+        if (playerXpText) playerXpText.textContent = `${xpMedioAtual}/${xpParaProximo} XP`;
 
         // Definir título baseado no progresso
         const titulos = [
@@ -1521,7 +1658,11 @@ class Game {
         container.innerHTML = heroiData.map(heroi => {
             const save = this.saveData.herois[heroi.id] || { nivel: 1, pv: 20, pvMax: 20, xp: 0 };
             const pvPercent = (save.pv / save.pvMax) * 100;
-            const xpPercent = ((save.xp || 0) / (save.nivel * 100)) * 100;
+
+            // Usar a mesma fórmula de XP do SaveManager
+            const xpParaProximo = this.saveManager.getXPParaProximoNivel(save.nivel);
+            const xpAtual = save.xp || 0;
+            const xpPercent = (xpAtual / xpParaProximo) * 100;
 
             return `
                 <div class="hero-card" data-class="${heroi.classe}">
@@ -1542,7 +1683,7 @@ class Game {
                             <div class="stat-bar pa-bar">
                                 <div class="stat-fill" style="width: ${xpPercent}%"></div>
                             </div>
-                            <span>${save.xp || 0} XP</span>
+                            <span>${xpAtual}/${xpParaProximo} XP</span>
                         </div>
                     </div>
                 </div>

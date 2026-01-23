@@ -242,28 +242,142 @@ export class SaveManager {
     }
 
     /**
+     * Define cartas desbloqueáveis por nível para cada classe
+     */
+    getCartasPorNivel() {
+        return {
+            guerreiro: {
+                3: 'shield_bash',      // Bater com escudo
+                5: 'whirlwind',        // Redemoinho
+                7: 'second_wind',      // Segundo Fôlego
+                10: 'berserker_rage'   // Fúria Berserker
+            },
+            mago: {
+                3: 'ice_wall',         // Muralha de Gelo
+                5: 'teleport',         // Teleporte
+                7: 'arcane_explosion', // Explosão Arcana
+                10: 'time_stop'        // Parar o Tempo
+            },
+            ladino: {
+                3: 'smoke_bomb',       // Bomba de Fumaça
+                5: 'shadow_step',      // Passo das Sombras
+                7: 'fan_of_knives',    // Leque de Facas
+                10: 'death_mark'       // Marca da Morte
+            },
+            clerigo: {
+                3: 'holy_smite',       // Golpe Sagrado
+                5: 'mass_heal',        // Cura em Massa
+                7: 'divine_intervention', // Intervenção Divina
+                10: 'angel_summon'     // Invocar Anjo
+            }
+        };
+    }
+
+    /**
+     * Calcula XP necessário para o próximo nível
+     */
+    getXPParaProximoNivel(nivel) {
+        // Fórmula: 100 XP base + 50 XP por nível adicional
+        return 100 + (nivel - 1) * 50;
+    }
+
+    /**
+     * Obtém os aumentos de stats por level up
+     */
+    getStatsPorNivel(heroiId, nivel) {
+        // Aumentos base
+        const base = {
+            pvMax: 3,
+            paMax: 0,
+            defesa: 0,
+            ataque: 0
+        };
+
+        // A cada 3 níveis, ganha +1 PA máximo
+        if (nivel % 3 === 0) {
+            base.paMax = 1;
+        }
+
+        // A cada 2 níveis, ganha +1 defesa ou ataque
+        if (nivel % 2 === 0) {
+            if (heroiId === 'guerreiro' || heroiId === 'clerigo') {
+                base.defesa = 1;
+            } else {
+                base.ataque = 1;
+            }
+        }
+
+        // Bonus específico por classe
+        switch (heroiId) {
+            case 'guerreiro':
+                base.pvMax += 2; // Guerreiro ganha mais vida
+                break;
+            case 'mago':
+                base.ataque += 1; // Mago ganha mais poder mágico
+                break;
+            case 'ladino':
+                base.ataque += 1; // Ladino ganha mais dano
+                break;
+            case 'clerigo':
+                base.pvMax += 1; // Clérigo equilibrado
+                break;
+        }
+
+        return base;
+    }
+
+    /**
      * Atualiza XP e verifica level up
+     * @returns {{ saveData: object, levelUps: Array }} Retorna saveData e array de level ups ocorridos
      */
     adicionarXP(heroiId, xp, saveData) {
         const heroi = saveData.herois[heroiId];
-        if (!heroi) return saveData;
+        if (!heroi) return { saveData, levelUps: [] };
 
         heroi.xp += xp;
+        const levelUps = [];
+        const cartasPorNivel = this.getCartasPorNivel();
 
-        // Verificar level up (100 XP por nível)
-        const xpParaProximoNivel = heroi.nivel * 100;
+        // Verificar level up
+        let xpParaProximoNivel = this.getXPParaProximoNivel(heroi.nivel);
+
         while (heroi.xp >= xpParaProximoNivel) {
             heroi.xp -= xpParaProximoNivel;
             heroi.nivel += 1;
 
-            // Aumentar stats por nível
-            heroi.pvMax += 2;
-            heroi.pv = heroi.pvMax;
+            // Obter aumentos de stats
+            const statsGanhos = this.getStatsPorNivel(heroiId, heroi.nivel);
+
+            // Aplicar aumentos de stats
+            heroi.pvMax += statsGanhos.pvMax;
+            heroi.pv = heroi.pvMax; // Restaurar vida ao subir de nível
+            heroi.paMax = (heroi.paMax || 4) + statsGanhos.paMax;
+
+            // Verificar se desbloqueia nova carta
+            let novaCarta = null;
+            if (cartasPorNivel[heroiId] && cartasPorNivel[heroiId][heroi.nivel]) {
+                novaCarta = cartasPorNivel[heroiId][heroi.nivel];
+                if (!heroi.cartasDesbloqueadas.includes(novaCarta)) {
+                    heroi.cartasDesbloqueadas.push(novaCarta);
+                }
+            }
+
+            // Registrar o level up
+            levelUps.push({
+                heroiId,
+                novoNivel: heroi.nivel,
+                statsGanhos,
+                novaCarta,
+                xpParaProximo: this.getXPParaProximoNivel(heroi.nivel)
+            });
 
             console.log(`[SaveManager] ${heroiId} subiu para nível ${heroi.nivel}!`);
+
+            // Calcular XP para o próximo nível
+            xpParaProximoNivel = this.getXPParaProximoNivel(heroi.nivel);
         }
 
-        return saveData;
+        return { saveData, levelUps };
     }
 
     /**

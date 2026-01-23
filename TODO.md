@@ -102,11 +102,11 @@
 
 ### 🔴 Prioridade Alta (Crítico para gameplay)
 
-#### Sistema de Level Up
-- [ ] Implementar UI de level up quando herói ganha nível
-- [ ] Aumentar stats dos heróis ao subir de nível
-- [ ] Desbloquear novas cartas ao subir de nível
-- [ ] Mostrar XP atual e XP necessário para próximo nível
+#### ~~Sistema de Level Up~~ ✅
+- [x] Implementar UI de level up quando herói ganha nível
+- [x] Aumentar stats dos heróis ao subir de nível
+- [x] Desbloquear novas cartas ao subir de nível (níveis 3, 5, 7, 10)
+- [x] Mostrar XP atual e XP necessário para próximo nível
 
 #### Recompensas de Cartas
 - [ ] Criar carta `lunar_strike` (recompensa do boss do Capítulo 1)
