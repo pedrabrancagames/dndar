@@ -591,6 +591,107 @@
             "recompensas": {
                 "xp": 50
             }
+        },
+        {
+            "id": "bugbear",
+            "nome": "Bugbear",
+            "tipo": "goblinoide",
+            "modelo": "bugbear.glb",
+            "escala": 1.2,
+            "stats": {
+                "pvMax": 27,
+                "pv": 27,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Clava com Espinhos",
+                    "dano": 11,
+                    "dados": "2d8+2"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "aleatorio",
+                "agressividade": "emboscador"
+            },
+            "recompensas": {
+                "xp": 50
+            }
+        },
+        {
+            "id": "hobgoblin",
+            "nome": "Hobgoblin",
+            "tipo": "goblinoide",
+            "modelo": "hobgoblin.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 11,
+                "pv": 11,
+                "defesa": 3,
+                "ataque": 3
+            },
+            "ataques": [
+                {
+                    "nome": "Espada Longa",
+                    "dano": 5,
+                    "dados": "1d8+1"
+                },
+                {
+                    "nome": "Arco Longo",
+                    "dano": 5,
+                    "dados": "1d8+1"
+                }
+            ],
+            "comportamento": {
+                "prioridade": "maior_dano",
+                "agressividade": "tatico"
+            },
+            "recompensas": {
+                "xp": 25
+            }
+        },
+        {
+            "id": "wight",
+            "nome": "Wight",
+            "tipo": "morto_vivo",
+            "modelo": "wight.glb",
+            "escala": 1.0,
+            "stats": {
+                "pvMax": 45,
+                "pv": 45,
+                "defesa": 2,
+                "ataque": 4
+            },
+            "ataques": [
+                {
+                    "nome": "Espada Longa",
+                    "dano": 6,
+                    "dados": "1d8+2"
+                },
+                {
+                    "nome": "Drenar Vida",
+                    "dano": 6,
+                    "dados": "1d6+2",
+                    "status": "necrotico",
+                    "lifesteal": 3
+                }
+            ],
+            "comportamento": {
+                "prioridade": "menor_pv",
+                "agressividade": "agressivo"
+            },
+            "resistencias": [
+                "imune_veneno",
+                "resistente_fisico_nao_magico"
+            ],
+            "vulnerabilidades": [
+                "sagrado",
+                "prata"
+            ],
+            "recompensas": {
+                "xp": 100
+            }
         }
     ]
 }

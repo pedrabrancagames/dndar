@@ -223,6 +223,8 @@ Para substituir partículas ou complementar:
 
 ---
 
+---
+
 ## 📋 LISTA DE TAREFAS RESUMIDA
 
 ### Para criar (Prioridade Alta):
@@ -235,15 +237,19 @@ Para substituir partículas ou complementar:
 ### Para criar (Prioridade Média):
 6. [x] `giant_spider.glb` - Aranha Gigante (inimigo comum de dungeon)
 7. [x] `specter.glb` - Espectro (combina com tema de mortos-vivos)
-8. [x] `wight.glb` - Wight (elite morto-vivo)
-9. [x] `hobgoblin.glb` - Hobgoblin (líder de goblins)
-10. [x] `bugbear.glb` - Bugbear (bom para emboscadas)
+8. [x] `wight.glb` - Wight (elite morto-vivo) - **41MB** (Necessita otimização manual)
+9. [x] `hobgoblin.glb` - Hobgoblin (líder de goblins) - **28MB** (Necessita otimização manual)
+10. [x] `bugbear.glb` - Bugbear (bom para emboscadas) - **57MB** (Necessita otimização manual)
 
 ### Para adicionar ao enemies.json (modelo já existe):
-11. [ ] Adicionar Owlbear usando `owlbear.glb`
+11. [x] Adicionar Owlbear usando `owlbear.glb` (Já estava, verificado)
+12. [x] Adicionar Bugbear, Hobgoblin, Wight (Adicionados)
 
 ### Ações imediatas:
-12. [ ] Criar entrada para Owlbear no enemies.json
+13. [x] Tentar compressão automática (gltf-pipeline) - **Parcialmente efetivo**
+    - Armas e Escudo falharam no Draco Compression. Tamanhos mantidos (~15-23MB).
+    - Inimigos grandes reduziram ~30-50% mas continuam pesados.
+
 
 ---
 
