@@ -95,7 +95,7 @@ export class SceneManager {
     setupLoaders() {
         // DRACO Loader para modelos comprimidos
         this.dracoLoader = new DRACOLoader();
-        this.dracoLoader.setDecoderPath('/public/assets/draco/');
+        this.dracoLoader.setDecoderPath('/assets/draco/');
 
         // GLTF Loader
         this.gltfLoader = new GLTFLoader();
@@ -265,7 +265,7 @@ export class SceneManager {
     async adicionarInimigos(inimigos) {
         for (const inimigo of inimigos) {
             try {
-                const modelPath = `/public/assets/models/${inimigo.modelo}`;
+                const modelPath = `/assets/models/${inimigo.modelo}`;
                 const model = await this.loadModel(modelPath);
 
                 // Configurar modelo

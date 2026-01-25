@@ -309,7 +309,7 @@ export class ARSceneManager {
             const cor = cores[index % cores.length];
 
             try {
-                const modelPath = `/public/assets/models/${inimigo.modelo}`;
+                const modelPath = `/assets/models/${inimigo.modelo}`;
                 const model = await this.loadModel(modelPath);
 
                 // Escala 3.0 para AR
