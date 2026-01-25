@@ -8,6 +8,11 @@ export class ParticleSystem {
     constructor(scene) {
         this.scene = scene;
         this.activeEffects = [];
+        this.enabled = true;
+    }
+
+    setEnabled(enabled) {
+        this.enabled = enabled;
     }
 
     /**
@@ -376,6 +381,8 @@ export class ParticleSystem {
      * Dispara efeito baseado no tipo de ação
      */
     dispararEfeito(tipo, position) {
+        if (!this.enabled) return;
+
         switch (tipo) {
             case 'dano':
             case 'ataque':

@@ -42,6 +42,14 @@ export class ARSceneManager {
 
         // Sistema de partículas
         this.particleSystem = null;
+
+        // Visual Feedback
+        this.selectionRing = null;
+        this.shadowCatcher = null;
+
+        // Performance Check
+        this.lastFrameTime = 0;
+        this.lowFpsFrames = 0;
     }
 
     on(evento, callback) {
@@ -80,12 +88,15 @@ export class ARSceneManager {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.xr.enabled = true;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         this.container.appendChild(this.renderer.domElement);
 
         this.setupLoaders();
         this.setupARLighting();
         this.createReticle();
+        this.createSelectionRing();
 
         // Inicializar sistema de partículas
         this.particleSystem = new ParticleSystem(this.scene);
@@ -101,11 +112,15 @@ export class ARSceneManager {
     }
 
     setupARLighting() {
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Reduzido para dar destaque à luz direcional
         this.scene.add(ambientLight);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(0, 6, 0);
+        directionalLight.position.set(2, 6, 2); // Leve angulação
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.bias = -0.0001;
         this.scene.add(directionalLight);
     }
 
@@ -120,6 +135,34 @@ export class ARSceneManager {
         this.reticle.matrixAutoUpdate = false;
         this.reticle.visible = false;
         this.scene.add(this.reticle);
+    }
+
+    createSelectionRing() {
+        const geometry = new THREE.RingGeometry(0.3, 0.35, 32).rotateX(-Math.PI / 2);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xffff00,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide
+        });
+        this.selectionRing = new THREE.Mesh(geometry, material);
+        this.selectionRing.visible = false;
+        // Desenhar sempre por cima do chão para evitar z-fighting
+        this.selectionRing.renderOrder = 1;
+        this.scene.add(this.selectionRing);
+    }
+
+    createShadowCatcher() {
+        // Plane que recebe sombras mas é transparente
+        const geometry = new THREE.PlaneGeometry(10, 10);
+        const material = new THREE.ShadowMaterial({
+            opacity: 0.4
+        });
+
+        const catcher = new THREE.Mesh(geometry, material);
+        catcher.rotation.x = -Math.PI / 2;
+        catcher.receiveShadow = true;
+        return catcher;
     }
 
     async startAR() {
@@ -177,6 +220,24 @@ export class ARSceneManager {
 
     renderAR(time, frame) {
         if (!frame) return;
+
+        // Monitoramento de FPS para Performance
+        if (this.lastFrameTime > 0) {
+            const delta = time - this.lastFrameTime;
+            // < 30 FPS aprox (33ms)
+            if (delta > 33) {
+                this.lowFpsFrames++;
+
+                // Se mantiver FPS baixo por ~2 segundos (60 frames ruins)
+                if (this.lowFpsFrames > 60 && this.particleSystem && this.particleSystem.enabled) {
+                    console.warn('[AR] Performance baixa detectada. Desativando partículas.');
+                    this.particleSystem.setEnabled(false);
+                }
+            } else {
+                this.lowFpsFrames = Math.max(0, this.lowFpsFrames - 1);
+            }
+        }
+        this.lastFrameTime = time;
 
         const session = this.renderer.xr.getSession();
 
@@ -244,16 +305,24 @@ export class ARSceneManager {
         position.setFromMatrixPosition(this.reticle.matrix);
 
         const meshesArray = Array.from(this.enemyMeshes.values());
-        const spacing = 3.0; // Espaçamento maior para evitar sobreposição (Scale 3.0)
+        const spacing = 1.5; // Reduzido (User Request) para caber melhor em ambientes reais
+
+        // Adicionar Shadow Catcher
+        if (!this.shadowCatcher) {
+            this.shadowCatcher = this.createShadowCatcher();
+            this.scene.add(this.shadowCatcher);
+        }
+        this.shadowCatcher.position.set(position.x, position.y, position.z);
+        this.shadowCatcher.visible = true;
 
         meshesArray.forEach((mesh, index) => {
             const offset = (index - (meshesArray.length - 1) / 2) * spacing;
             mesh.position.set(
                 position.x + offset,
-                position.y + 0.1,
+                position.y, // Removido +0.1 para ficar no chão e projetar sombra correta
                 position.z
             );
-            mesh.userData.baseY = position.y + 0.1;
+            mesh.userData.baseY = position.y;
             mesh.visible = true;
         });
 
@@ -296,6 +365,11 @@ export class ARSceneManager {
             }
 
             if (target && target.userData.instanceId) {
+                // Feedback visual de seleção
+                this.selectionRing.position.copy(target.position);
+                this.selectionRing.position.y = target.userData.baseY + 0.02; // Levemente acima do chão
+                this.selectionRing.visible = true;
+
                 this.emit('inimigoClicado', { instanceId: target.userData.instanceId });
             }
         }
