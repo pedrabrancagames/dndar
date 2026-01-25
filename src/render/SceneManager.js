@@ -357,10 +357,16 @@ export class SceneManager {
         ctx.fillStyle = '#e74c3c';
         ctx.fillRect(4, 40, 248, 16);
 
+        // Nome do Inimigo
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 20px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(inimigo.nome, 128, 28);
+        ctx.textAlign = 'left';
+        ctx.fillText(inimigo.nome, 10, 28);
+
+        // HP Numérico
+        const hpTexto = `${inimigo.pv}/${inimigo.pvMax}`;
+        ctx.textAlign = 'right';
+        ctx.fillText(hpTexto, 246, 28);
 
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({
@@ -371,8 +377,11 @@ export class SceneManager {
         sprite.scale.set(1.5, 0.4, 1);
         sprite.position.y = 1.5;
         sprite.userData.healthBar = true;
+        sprite.userData.nome = inimigo.nome; // Guardar nome para updates
+        sprite.userData.pvMax = inimigo.pvMax; // Guardar max PV para updates
 
         model.add(sprite);
+
         model.userData.healthSprite = sprite;
     }
 
@@ -402,10 +411,19 @@ export class SceneManager {
         ctx.fillStyle = pvPercent > 50 ? '#27ae60' : pvPercent > 25 ? '#f39c12' : '#e74c3c';
         ctx.fillRect(4, 40, fillWidth, 16);
 
+        // Nome do Inimigo
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 20px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(mesh.userData.nome || 'Inimigo', 128, 28);
+        ctx.textAlign = 'left';
+        ctx.fillText(mesh.userData.healthSprite.userData.nome || 'Inimigo', 10, 28);
+
+        // HP Numérico
+        const pvMax = mesh.userData.healthSprite.userData.pvMax || 100;
+        const pvAtual = Math.ceil((pvPercent / 100) * pvMax);
+        const hpTexto = `${pvAtual}/${pvMax}`;
+
+        ctx.textAlign = 'right';
+        ctx.fillText(hpTexto, 246, 28);
 
         sprite.material.map.dispose();
         sprite.material.map = new THREE.CanvasTexture(canvas);

@@ -391,11 +391,24 @@ export class ARSceneManager {
         const border = new THREE.LineSegments(borderGeometry, borderMaterial);
         group.add(border);
 
-        // Nome do inimigo (usando sprite de texto)
-        const nameSprite = this.criarTextoSprite(nome);
+        // Nome do inimigo (usando sprite de texto) - Esquerda
+        const nameSprite = this.criarTextoSprite(nome, 'left');
         nameSprite.position.y = 0.12;
-        nameSprite.scale.set(0.5, 0.15, 1);
+        nameSprite.position.x = -0.15; // Deslocar para esquerda
+        nameSprite.scale.set(0.3, 0.1, 1);
         group.add(nameSprite);
+
+        // HP Numérico - Direita
+        const hpText = `${pv}/${pvMax}`;
+        const hpSprite = this.criarTextoSprite(hpText, 'right');
+        hpSprite.position.y = 0.12;
+        hpSprite.position.x = 0.15; // Deslocar para direita
+        hpSprite.scale.set(0.2, 0.1, 1);
+        hpSprite.name = 'hpText';
+        group.add(hpSprite);
+
+        // Guardar max PV para updates
+        group.userData.pvMax = pvMax;
 
         // A barra deve sempre olhar para a câmera
         group.userData.lookAtCamera = true;
@@ -406,7 +419,7 @@ export class ARSceneManager {
     /**
      * Cria sprite de texto
      */
-    criarTextoSprite(texto) {
+    criarTextoSprite(texto, align = 'center') {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = 256;
@@ -417,11 +430,20 @@ export class ARSceneManager {
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         // Texto
-        context.font = 'bold 28px Inter, Arial, sans-serif';
+        context.font = 'bold 36px Inter, Arial, sans-serif';
         context.fillStyle = '#ffffff';
-        context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(texto, canvas.width / 2, canvas.height / 2);
+
+        if (align === 'left') {
+            context.textAlign = 'left';
+            context.fillText(texto, 10, canvas.height / 2);
+        } else if (align === 'right') {
+            context.textAlign = 'right';
+            context.fillText(texto, canvas.width - 10, canvas.height / 2);
+        } else {
+            context.textAlign = 'center';
+            context.fillText(texto, canvas.width / 2, canvas.height / 2);
+        }
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;
@@ -563,6 +585,29 @@ export class ARSceneManager {
 
             // Atualizar cor
             hpFill.material.color.setHex(this.getHealthColor(hpPercent));
+        }
+
+        // Atualizar texto de HP
+        const hpSprite = healthBar.children.find(c => c.name === 'hpText');
+        if (hpSprite) {
+            const pvMax = healthBar.userData.pvMax || 10;
+            const pvAtual = Math.ceil((pvPercent / 100) * pvMax);
+            const novoTexto = `${pvAtual}/${pvMax}`;
+
+            // Recriar sprite (limitação do three.js sprite simples)
+            // Primeiro remover antigo
+            healthBar.remove(hpSprite);
+            // Limpar material antigo
+            if (hpSprite.material.map) hpSprite.material.map.dispose();
+            hpSprite.material.dispose();
+
+            // Criar novo
+            const novoHpSprite = this.criarTextoSprite(novoTexto, 'right');
+            novoHpSprite.position.y = 0.12;
+            novoHpSprite.position.x = 0.15;
+            novoHpSprite.scale.set(0.2, 0.1, 1);
+            novoHpSprite.name = 'hpText';
+            healthBar.add(novoHpSprite);
         }
     }
 
