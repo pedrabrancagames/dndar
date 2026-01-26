@@ -546,17 +546,20 @@ body {
 
 /* End Turn Button */
 .end-turn-btn {
-  flex-shrink: 0;
-  padding: var(--space-md) var(--space-lg);
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   background: linear-gradient(135deg, var(--color-accent-primary), #5a4fcf);
   border: none;
   border-radius: var(--border-radius-md);
   color: white;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+  z-index: 20;
 }
 
 .end-turn-btn:hover {
