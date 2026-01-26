@@ -42,7 +42,14 @@ export class HUD {
             cancelTarget: document.getElementById('cancel-target'),
 
             // Combat Log
-            logEntries: document.getElementById('log-entries')
+            logEntries: document.getElementById('log-entries'),
+
+            // Inspection Panel (AR)
+            inspectionPanel: document.getElementById('inspection-panel'),
+            inspectionName: document.querySelector('.inspection-name'),
+            inspectionIcon: document.querySelector('.inspection-icon'),
+            inspectionHp: document.querySelector('.inspection-stat.hp .value'),
+            inspectionDetails: document.querySelector('.inspection-details')
         };
     }
 
@@ -229,6 +236,14 @@ export class HUD {
       <span class="card-cost">${carta.custoPA}</span>
       <div class="card-icon">${carta.icon}</div>
       <div class="card-name">${carta.nome}</div>
+      
+      ${carta.preview && carta.preview.valor ? `
+      <div class="card-stats">
+        <span class="stat-value">${carta.preview.icone} ${carta.preview.valor}</span>
+        ${carta.preview.secundario ? `<span class="stat-sec">${carta.preview.secundario}</span>` : ''}
+      </div>
+      ` : ''}
+
       <div class="card-type">${carta.tipo}</div>
     `;
 
@@ -435,5 +450,80 @@ export class HUD {
         } else {
             this.esconderModoSelecao();
         }
+    }
+
+    /**
+     * Mostra painel de inspeção de inimigo
+     */
+    mostrarInspecao(inimigo) {
+        if (!this.elements.inspectionPanel) return;
+
+        // Preencher dados
+        this.elements.inspectionName.textContent = inimigo.nome;
+        this.elements.inspectionHp.textContent = `${inimigo.pv}/${inimigo.pvMax}`;
+
+        // Ícone baseado no tipo (simplificado)
+        // Poderia ser mapeado melhor, mas por enquanto:
+        this.elements.inspectionIcon.textContent = inimigo.isBoss ? '💀' : '👹';
+
+        // Detalhes: Fraquezas e Resistências
+        const details = this.elements.inspectionDetails;
+        details.innerHTML = '';
+
+        // Fraquezas
+        if (inimigo.vulnerabilidades && inimigo.vulnerabilidades.length > 0) {
+            inimigo.vulnerabilidades.forEach(tipo => {
+                const badge = document.createElement('span');
+                badge.className = 'inspection-badge weak';
+                badge.textContent = `${this.getIconeTipo(tipo)} Fraco`;
+                details.appendChild(badge);
+            });
+        }
+
+        // Resistências
+        if (inimigo.resistencias && inimigo.resistencias.length > 0) {
+            inimigo.resistencias.forEach(tipo => {
+                const badge = document.createElement('span');
+                badge.className = 'inspection-badge resist';
+                badge.textContent = `${this.getIconeTipo(tipo)} Resiste`;
+                details.appendChild(badge);
+            });
+        }
+
+        // Buffs/Debuffs
+        if (inimigo.debuffs && inimigo.debuffs.length > 0) {
+            inimigo.debuffs.forEach(debuff => {
+                const badge = document.createElement('span');
+                badge.className = 'inspection-badge debuff';
+                badge.textContent = `${debuff.tipo}`;
+                details.appendChild(badge);
+            });
+        }
+
+        this.elements.inspectionPanel.classList.remove('hidden');
+    }
+
+    /**
+     * Esconde painel de inspeção
+     */
+    esconderInspecao() {
+        if (this.elements.inspectionPanel) {
+            this.elements.inspectionPanel.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Helper para ícones de tipo
+     */
+    getIconeTipo(tipo) {
+        const icones = {
+            'fogo': '🔥',
+            'gelo': '❄️',
+            'raio': '⚡',
+            'veneno': '🧪',
+            'fisico': '⚔️',
+            'sagrado': '✨'
+        };
+        return icones[tipo] || '•';
     }
 }

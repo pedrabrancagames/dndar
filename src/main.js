@@ -727,6 +727,21 @@ class Game {
                 console.log('[Game] Sessão AR encerrada');
                 this.isARMode = false;
             });
+
+            // Inspeção de Inimigos (Gaze)
+            this.arSceneManager.on('inimigoInspecionado', ({ instanceId }) => {
+                if (!this.combatManager.modoSelecaoAlvo) { // Só inspecionar se não estiver selecionando alvo
+                    const inimigo = this.combatManager.inimigos.find(e => e.instanceId === instanceId);
+                    if (inimigo) {
+                        this.hud.mostrarInspecao(inimigo);
+                        this.audioManager.tocar('ui_hover');
+                    }
+                }
+            });
+
+            this.arSceneManager.on('inimigoDesinspecionado', () => {
+                this.hud.esconderInspecao();
+            });
         }
 
         // Ir para tela de combate

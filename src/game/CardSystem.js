@@ -324,8 +324,109 @@ export class CardSystem {
             icon: carta.icon,
             descricao: carta.descricao,
             disponivel: usuarioPA >= carta.custoPA,
-            efeitos: this.getEfeitosTexto(carta)
+            efeitos: this.getEfeitosTexto(carta),
+            preview: this.getPreviewValues(carta, usuarioPA)
         };
+    }
+
+    /**
+     * Calcula os valores de previsão para exibição na UI
+     */
+    getPreviewValues(carta, usuarioPA) {
+        const preview = {
+            tipo: null,
+            valor: null,
+            icone: null,
+            secundario: null
+        };
+
+        const e = carta.efeitos;
+        if (!e) return preview;
+
+        // Prioridade 1: Dano
+        if (e.dano) {
+            preview.tipo = 'dano';
+            preview.icone = '⚔️';
+
+            const base = e.dano.base || 0;
+            // Calcular range de dados se houver
+            let min = base;
+            let max = base;
+
+            if (e.dano.dados) {
+                // Parse "XdY+Z"
+                const match = e.dano.dados.match(/(\d+)d(\d+)([+-]\d+)?/);
+                if (match) {
+                    const qtd = parseInt(match[1]);
+                    const lados = parseInt(match[2]);
+                    const mod = match[3] ? parseInt(match[3]) : 0;
+
+                    min += qtd * 1 + mod; // Mínimo é 1 por dado
+                    max += qtd * lados + mod; // Máximo é lados por dado
+                }
+            }
+
+            preview.valor = min === max ? `${min}` : `${min}-${max}`;
+
+            // Adicionar info de crítico se relevante
+            if (e.critico) {
+                preview.secundario = `${e.critico.chance}% Crit`;
+            }
+            return preview;
+        }
+
+        // Prioridade 2: Cura
+        if (e.cura) {
+            preview.tipo = 'cura';
+            preview.icone = '💚';
+
+            const base = e.cura.base || 0;
+            let min = base;
+            let max = base;
+
+            if (e.cura.dados) {
+                const match = e.cura.dados.match(/(\d+)d(\d+)([+-]\d+)?/);
+                if (match) {
+                    const qtd = parseInt(match[1]);
+                    const lados = parseInt(match[2]);
+                    const mod = match[3] ? parseInt(match[3]) : 0;
+
+                    min += qtd * 1 + mod;
+                    max += qtd * lados + mod;
+                }
+            }
+
+            preview.valor = min === max ? `${min}` : `${min}-${max}`;
+            return preview;
+        }
+
+        // Prioridade 3: Escudo
+        if (e.escudo) {
+            preview.tipo = 'escudo';
+            preview.icone = '🛡️';
+            preview.valor = `${e.escudo.valor}`;
+            return preview;
+        }
+
+        // Prioridade 4: Buffs
+        if (e.buff) {
+            preview.tipo = 'buff';
+            preview.icone = '✨';
+            preview.valor = `+${e.buff.valor} ${e.buff.tipo}`;
+            preview.secundario = `${e.buff.duracao} trn`;
+            return preview;
+        }
+
+        // Prioridade 5: Status/Debuffs
+        if (e.status) {
+            preview.tipo = 'status';
+            preview.icone = '💀';
+            preview.valor = e.status.tipo;
+            preview.secundario = `${e.status.duracao} trn`;
+            return preview;
+        }
+
+        return preview;
     }
 
     /**

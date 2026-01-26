@@ -50,6 +50,12 @@ export class ARSceneManager {
         // Performance Check
         this.lastFrameTime = 0;
         this.lowFpsFrames = 0;
+
+        // Gaze System (Inspeção)
+        this.gazeTarget = null;
+        this.gazeStartTime = 0;
+        this.gazeThreshold = 500; // 500ms para ativar inspeção
+        this.lastGazeEmit = 0;
     }
 
     on(evento, callback) {
@@ -272,6 +278,8 @@ export class ARSceneManager {
         }
 
         this.updateAnimations(time);
+        this.updateAnimations(time);
+        this.checkGaze(time); // Verificar gaze a cada frame
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -299,6 +307,73 @@ export class ARSceneManager {
         }
 
         this.checkEnemySelectionAR();
+    }
+
+    /**
+     * Verifica interações por olhar fixo (Gaze)
+     */
+    checkGaze(time) {
+        if (!this.controller || !this.isARActive || !this.enemiesPlaced) return;
+
+        // Usar lógica similar ao raycast de seleção, mas contínua
+        const tempMatrix = new THREE.Matrix4();
+        tempMatrix.identity().extractRotation(this.controller.matrixWorld);
+
+        this.raycaster.ray.origin.setFromMatrixPosition(this.controller.matrixWorld);
+        this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        this.raycaster.camera = this.camera;
+
+        // Meshes selecionáveis
+        const selectableMeshes = [];
+        this.enemyMeshes.forEach((mesh) => {
+            if (mesh.visible && mesh.userData.selecionavel) {
+                mesh.traverse((child) => {
+                    if (child.isMesh && !child.parent?.name?.includes('healthBar') && child.parent?.name !== 'healthBar') {
+                        selectableMeshes.push(child);
+                    }
+                });
+            }
+        });
+
+        const intersects = this.raycaster.intersectObjects(selectableMeshes, false);
+
+        if (intersects.length > 0) {
+            let target = intersects[0].object;
+            while (target && !target.userData.instanceId) {
+                target = target.parent;
+            }
+
+            if (target && target.userData.instanceId) {
+                const targetId = target.userData.instanceId;
+
+                // Se mudou de alvo ou começou agora
+                if (this.gazeTarget !== targetId) {
+                    this.gazeTarget = targetId;
+                    this.gazeStartTime = performance.now();
+                } else {
+                    // Se continua no mesmo alvo
+                    const duration = performance.now() - this.gazeStartTime;
+
+                    // Se passou do limiar e ainda não emitiu recentemente (evitar flood)
+                    if (duration > this.gazeThreshold && (performance.now() - this.lastGazeEmit > 1000)) {
+                        this.lastGazeEmit = performance.now();
+
+                        // Feedback visual suave (scale up leve)
+                        // target.scale.multiplyScalar(1.05);
+                        // setTimeout(() => target.scale.multiplyScalar(0.952), 200);
+
+                        this.emit('inimigoInspecionado', { instanceId: targetId });
+                    }
+                }
+                return;
+            }
+        }
+
+        // Se não intersectou nada ou perdeu o alvo
+        if (this.gazeTarget !== null) {
+            this.gazeTarget = null;
+            this.emit('inimigoDesinspecionado');
+        }
     }
 
     placeEnemiesAtReticle() {
