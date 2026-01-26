@@ -199,6 +199,14 @@ class Game {
         document.getElementById('btn-exit-combat')?.addEventListener('click', () => {
             this.confirmarSaidaCombate();
         });
+
+        // Toggle Combat Log
+        document.getElementById('btn-toggle-log')?.addEventListener('click', () => {
+            const log = document.getElementById('combat-log');
+            if (log) {
+                log.classList.toggle('hidden');
+            }
+        });
     }
 
     /**

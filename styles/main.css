@@ -724,12 +724,43 @@ body {
   }
 }
 
+/* Toggle Log Button */
+.toggle-log-btn {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 44px;
+  height: 44px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-log-btn:hover {
+  background: rgba(108, 92, 231, 0.3);
+  border-color: var(--color-accent-primary);
+  transform: scale(1.1);
+}
+
+.toggle-log-btn:active {
+  transform: scale(0.95);
+}
+
 /* ============================================
    Combat Log
    ============================================ */
 #combat-log {
   position: absolute;
-  top: var(--space-md);
+  top: 70px;
   right: var(--space-md);
   width: 180px;
   max-height: 200px;
@@ -741,7 +772,17 @@ body {
   padding: var(--space-sm);
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent-primary) transparent;
+  transition: all var(--transition-fast);
 }
+
+#combat-log.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  display: block !important;
+  /* Override .hidden display:none to allow transition */
+}
+
 
 #log-entries {
   display: flex;
@@ -1182,7 +1223,7 @@ input[type="range"] {
 #btn-exit-ar {
   position: absolute;
   top: var(--space-md);
-  right: var(--space-md);
+  right: 70px;
   width: 44px;
   height: 44px;
   background: rgba(231, 76, 60, 0.8);
