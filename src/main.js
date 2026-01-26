@@ -560,7 +560,8 @@ class Game {
                 // Limpar estado do AR se estiver ativo
                 if (this.isARMode && this.arSceneManager) {
                     console.log('[Game] Encerrando sessão AR...');
-                    this.arSceneManager.stopAR?.();
+                    this.arSceneManager.dispose?.();
+                    this.arSceneManager = null;
                     this.isARMode = false;
                 }
             }, 3500);
@@ -613,7 +614,8 @@ class Game {
 
             // Limpar estado do AR se estiver ativo
             if (this.isARMode && this.arSceneManager) {
-                this.arSceneManager.stopAR?.();
+                this.arSceneManager.dispose?.();
+                this.arSceneManager = null;
                 this.isARMode = false;
             }
 
@@ -864,7 +866,8 @@ class Game {
 
         // Limpar estado do AR se ativo
         if (this.isARMode && this.arSceneManager) {
-            this.arSceneManager.stopAR?.();
+            this.arSceneManager.dispose?.();
+            this.arSceneManager = null;
             this.isARMode = false;
         }
 

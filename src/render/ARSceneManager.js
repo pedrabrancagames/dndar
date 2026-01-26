@@ -229,9 +229,12 @@ export class ARSceneManager {
                 this.lowFpsFrames++;
 
                 // Se mantiver FPS baixo por ~2 segundos (60 frames ruins)
-                if (this.lowFpsFrames > 60 && this.particleSystem && this.particleSystem.enabled) {
-                    console.warn('[AR] Performance baixa detectada. Desativando partículas.');
-                    this.particleSystem.setEnabled(false);
+                if (this.lowFpsFrames > 60) {
+                    // Verificar se já desativou para não floodar
+                    if (this.particleSystem && this.particleSystem.enabled) {
+                        console.warn('[AR] Performance baixa detectada. Desativando partículas.');
+                        this.particleSystem.setEnabled(false);
+                    }
                 }
             } else {
                 this.lowFpsFrames = Math.max(0, this.lowFpsFrames - 1);
@@ -833,22 +836,56 @@ export class ARSceneManager {
 
         // Limpar scene
         if (this.scene) {
-            while (this.scene.children.length > 0) {
-                this.scene.remove(this.scene.children[0]);
-            }
+            this.scene.traverse((object) => {
+                this.disposeObject(object);
+            });
+            this.scene.clear();
         }
 
         // Limpar renderer e remover canvas
         if (this.renderer) {
             this.renderer.setAnimationLoop(null);
             this.renderer.dispose();
+            this.renderer.forceContextLoss(); // Forçar perda de contexto
             if (this.container && this.renderer.domElement && this.container.contains(this.renderer.domElement)) {
                 this.container.removeChild(this.renderer.domElement);
             }
+            this.renderer = null;
         }
 
         // Resetar flags
         this.isARActive = false;
         this.isARSupported = false;
+        console.log('[AR] Recursos liberados e memória limpa');
+    }
+
+    disposeObject(object) {
+        if (!object) return;
+
+        if (object.geometry) {
+            object.geometry.dispose();
+        }
+
+        if (object.material) {
+            if (Array.isArray(object.material)) {
+                object.material.forEach(material => this.disposeMaterial(material));
+            } else {
+                this.disposeMaterial(object.material);
+            }
+        }
+    }
+
+    disposeMaterial(material) {
+        if (!material) return;
+
+        // Dispor texturas
+        for (const key of Object.keys(material)) {
+            const value = material[key];
+            if (value && typeof value === 'object' && 'minFilter' in value) {
+                value.dispose();
+            }
+        }
+
+        material.dispose();
     }
 }

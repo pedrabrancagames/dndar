@@ -123,33 +123,81 @@ export class GameMaster {
                 return;
             }
 
-            // Cancelar fala anterior
-            this.synth.cancel();
+            // Adicionar à fila de narração
+            this.filaDialogos.push({ text, options, resolve });
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.voice = this.voice;
-            utterance.rate = options.rate || this.speechRate;
-            utterance.pitch = options.pitch || 1;
-            utterance.volume = options.volume || this.volume;
-
-            utterance.onend = () => {
-                resolve();
-                if (options.onEnd) options.onEnd();
-            };
-
-            utterance.onerror = (event) => {
-                console.warn('[GameMaster] Erro na narração:', event.error);
-                resolve();
-            };
-
-            this.synth.speak(utterance);
+            // Se não estiver narrando nada, processar a fila
+            if (!this.synth.speaking) {
+                this.processarFila();
+            }
         });
+    }
+
+    /**
+     * Processa a fila de narração
+     */
+    processarFila() {
+        if (this.filaDialogos.length === 0) return;
+
+        // Pegar o próximo item (sem remover ainda, caso precise repetir)
+        const item = this.filaDialogos[0];
+        const { text, options, resolve } = item;
+
+        // Cancelar fala anterior se necessário (apenas se for nova prioridade, mas aqui seguimos fila)
+        this.synth.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.voice = this.voice;
+        utterance.rate = options.rate || this.speechRate;
+        utterance.pitch = options.pitch || 1;
+        utterance.volume = options.volume || this.volume;
+
+        utterance.onend = () => {
+            // Remover da fila
+            this.filaDialogos.shift();
+            resolve();
+            if (options.onEnd) options.onEnd();
+
+            // Processar próximo
+            setTimeout(() => this.processarFila(), 50);
+        };
+
+        utterance.onerror = (event) => {
+            console.warn('[GameMaster] Erro na narração:', event.error);
+
+            // Se for erro de interrupção, apenas seguimos
+            // Se for synthesis-failed, tentamos recuperar
+            if (event.error === 'synthesis-failed' || event.error === 'synthesis-unavailable') {
+                console.error('[GameMaster] Falha crítica na síntese de voz. Desativando temporariamente.');
+                this.voiceEnabled = false;
+                setTimeout(() => this.voiceEnabled = true, 5000); // Tentar reativar em 5s
+            }
+
+            // Remover da fila mesmo com erro para não travar
+            this.filaDialogos.shift();
+            resolve();
+
+            // Processar próximo
+            setTimeout(() => this.processarFila(), 50);
+        };
+
+        try {
+            this.synth.speak(utterance);
+        } catch (e) {
+            console.error('[GameMaster] Exceção ao chamar speak:', e);
+            this.filaDialogos.shift();
+            resolve();
+            setTimeout(() => this.processarFila(), 50);
+        }
     }
 
     /**
      * Para a narração atual
      */
     stop() {
+        // Limpar fila
+        this.filaDialogos = [];
+
         if (this.synth) {
             this.synth.cancel();
         }
