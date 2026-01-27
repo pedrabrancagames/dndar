@@ -5,6 +5,7 @@
 import { CombatManager } from './game/CombatManager.js';
 import { GameMaster } from './gm/GameMaster.js';
 import { HUD } from './ui/HUD.js';
+import { UIManager } from './ui/UIManager.js';
 import { SceneManager } from './render/SceneManager.js';
 import { ARSceneManager } from './render/ARSceneManager.js';
 import { AudioManager } from './audio/AudioManager.js';
@@ -16,6 +17,7 @@ class Game {
         this.combatManager = new CombatManager();
         this.gameMaster = new GameMaster();
         this.hud = new HUD();
+        this.uiManager = new UIManager();
         this.audioManager = new AudioManager();
         this.saveManager = new SaveManager();
         this.campaignManager = new CampaignManager();
@@ -24,7 +26,7 @@ class Game {
         this.isARMode = false;
 
         this.telaAtual = 'loading';
-        this.elementos = {};
+        // this.elementos agora é um getter para não quebrar código legado
         this.saveData = null;
         this.settings = null;
         this.missaoSelecionada = null;
@@ -36,48 +38,55 @@ class Game {
         this.filtroAtual = 'todos';
     }
 
+    get elementos() {
+        return this.uiManager.elementos;
+    }
+
     /**
      * Inicializa o jogo
      */
     async init() {
         console.log('[Game] Iniciando...');
 
-        this.cacheElementos();
-        this.setupEventListeners();
+        // Inicializar UI Manager (cacheia elementos e configura listeners básicos)
+        this.uiManager.init();
+
+        // Configurar interações avançadas da UI (callbacks)
+        this.setupUIInteraction();
 
         // Mostrar loading
-        this.atualizarLoading(10, 'Carregando sistema de combate...');
+        this.uiManager.atualizarLoading(10, 'Carregando sistema de combate...');
 
         // Inicializar combat manager
         const combatOk = await this.combatManager.inicializar();
         if (!combatOk) {
-            this.atualizarLoading(100, 'Erro ao carregar dados do jogo');
+            this.uiManager.atualizarLoading(100, 'Erro ao carregar dados do jogo');
             return;
         }
 
-        this.atualizarLoading(30, 'Carregando campanha...');
+        this.uiManager.atualizarLoading(30, 'Carregando campanha...');
 
         // Carregar campanha
         await this.campaignManager.carregarCampanha();
 
-        this.atualizarLoading(40, 'Carregando progresso...');
+        this.uiManager.atualizarLoading(40, 'Carregando progresso...');
 
         // Carregar save e configurações
         this.saveData = this.saveManager.carregar();
         this.settings = this.saveManager.carregarConfiguracoes();
 
-        this.atualizarLoading(50, 'Carregando Game Master...');
+        this.uiManager.atualizarLoading(50, 'Carregando Game Master...');
 
         // Carregar configurações salvas
         this.carregarConfiguracoes();
 
-        this.atualizarLoading(60, 'Configurando interface...');
+        this.uiManager.atualizarLoading(60, 'Configurando interface...');
 
         // Inicializar HUD
         this.hud.init();
         this.setupHUDCallbacks();
 
-        this.atualizarLoading(70, 'Preparando...');
+        this.uiManager.atualizarLoading(70, 'Preparando...');
 
         // Configurar callbacks do combat manager
         this.setupCombatCallbacks();
@@ -93,7 +102,7 @@ class Game {
         this.setupInventoryCallbacks();
         this.setupGMScreenCallbacks();
 
-        this.atualizarLoading(85, 'Carregando sons...');
+        this.uiManager.atualizarLoading(85, 'Carregando sons...');
 
         // Carregar sons
         await this.audioManager.carregarSons();
@@ -101,7 +110,7 @@ class Game {
         // Aplicar configurações de áudio
         this.aplicarConfiguracoesAudio();
 
-        this.atualizarLoading(100, 'Pronto!');
+        this.uiManager.atualizarLoading(100, 'Pronto!');
 
         // Ir para home após pequeno delay
         setTimeout(() => {
@@ -112,101 +121,61 @@ class Game {
     }
 
     /**
-     * Cacheia referências aos elementos
+     * Configura interações entre UI Manager e Game
      */
-    cacheElementos() {
-        this.elementos = {
-            loadingScreen: document.getElementById('loading-screen'),
-            homeScreen: document.getElementById('home-screen'),
-            combatScreen: document.getElementById('combat-screen'),
-            loadingBar: document.getElementById('loading-bar'),
-            loadingText: document.getElementById('loading-text'),
-            settingsModal: document.getElementById('settings-modal'),
+    setupUIInteraction() {
+        // Navegação
+        this.uiManager.on('navegacao', ({ destino }) => {
+            // Se estava na tela de combate e está saindo
+            if (this.telaAtual === 'combat' && destino !== 'combat') {
+                this.limparEstadoCombate();
+            }
 
-            // Botões do menu
-            btnCombat: document.getElementById('btn-combat'),
-            btnGameMaster: document.getElementById('btn-game-master'),
-            btnMap: document.getElementById('btn-map'),
-            btnProfile: document.getElementById('btn-profile'),
-            btnSettings: document.getElementById('btn-settings'),
-            closeSettings: document.getElementById('close-settings'),
+            // Ações específicas ao entrar em telas
+            if (destino === 'gm') this.renderizarTelaGM();
+            if (destino === 'map') this.renderizarMapa();
+            if (destino === 'profile') this.renderizarPerfil();
+            if (destino === 'settings') this.carregarConfiguracoesNaTela();
+            if (destino === 'mission') this.renderizarListaMissoes();
+            if (destino === 'inventory') this.carregarInventario();
+            if (destino === 'home' && this.atualizarOuroHome) this.atualizarOuroHome();
 
-            // Configurações
-            settingVoice: document.getElementById('setting-voice'),
-            settingSpeechRate: document.getElementById('setting-speech-rate'),
-            settingVolume: document.getElementById('setting-volume'),
-            speechRateValue: document.getElementById('speech-rate-value'),
-            volumeValue: document.getElementById('volume-value'),
+            this.telaAtual = destino;
+        });
 
-            // AR
-            btnARCombat: document.getElementById('btn-ar-combat')
-        };
+        // AR
+        this.uiManager.on('iniciarAR', () => this.iniciarCombateAR());
+
+        // Configurações
+        this.uiManager.on('configuracaoAlterada', ({ tipo, valor }) => {
+            if (tipo === 'voice') this.gameMaster.setVoiceEnabled(valor);
+            if (tipo === 'speechRate') this.gameMaster.setSpeechRate(valor);
+            if (tipo === 'volume') this.gameMaster.setVolume(valor);
+
+            // Salvar configurações
+            this.salvarConfiguracoesGameMaster();
+        });
+
+        // Combate
+        this.uiManager.on('sairCombate', () => this.confirmarSaidaCombate());
     }
 
     /**
-     * Configura event listeners gerais
+     * Limpa o estado ao sair do combate (Música, AR, GM)
      */
-    setupEventListeners() {
-        // Menu principal - Combate será configurado em setupMissionCallbacks
-        // NÃO adicionar listener para btnCombat aqui para evitar duplicação
-        this.elementos.btnGameMaster?.addEventListener('click', () => {
-            this.irParaTela('gm');
-            this.renderizarTelaGM();
-        });
-        this.elementos.btnMap?.addEventListener('click', () => {
-            this.irParaTela('map');
-            this.renderizarMapa();
-        });
-        this.elementos.btnProfile?.addEventListener('click', () => {
-            this.irParaTela('profile');
-            this.renderizarPerfil();
-        });
-        this.elementos.btnSettings?.addEventListener('click', () => this.abrirConfiguracoes());
-        this.elementos.closeSettings?.addEventListener('click', () => this.fecharConfiguracoes());
+    limparEstadoCombate() {
+        // Parar música de combate
+        this.audioManager.pararMusica();
 
-        // Botão AR
-        this.elementos.btnARCombat?.addEventListener('click', () => this.iniciarCombateAR());
+        // Limpar estado do AR se estiver ativo
+        if (this.isARMode && this.arSceneManager) {
+            this.arSceneManager.dispose?.();
+            this.arSceneManager = null;
+            this.isARMode = false;
+        }
 
-        // Configurações do modal rápido (GameMaster)
-        this.elementos.settingVoice?.addEventListener('change', (e) => {
-            this.gameMaster.setVoiceEnabled(e.target.checked);
-            this.salvarConfiguracoesGameMaster();
-        });
-
-        this.elementos.settingSpeechRate?.addEventListener('input', (e) => {
-            const rate = parseFloat(e.target.value);
-            this.gameMaster.setSpeechRate(rate);
-            this.elementos.speechRateValue.textContent = `${rate}x`;
-            this.salvarConfiguracoesGameMaster();
-        });
-
-        this.elementos.settingVolume?.addEventListener('input', (e) => {
-            const volume = parseFloat(e.target.value);
-            this.gameMaster.setVolume(volume);
-            this.elementos.volumeValue.textContent = `${Math.round(volume * 100)}%`;
-            this.salvarConfiguracoesGameMaster();
-        });
-
-        // Menu de pausa do combate
-        document.getElementById('btn-combat-menu')?.addEventListener('click', () => {
-            this.abrirMenuPausa();
-        });
-
-        document.getElementById('btn-resume-combat')?.addEventListener('click', () => {
-            this.fecharMenuPausa();
-        });
-
-        document.getElementById('btn-exit-combat')?.addEventListener('click', () => {
-            this.confirmarSaidaCombate();
-        });
-
-        // Toggle Combat Log
-        document.getElementById('btn-toggle-log')?.addEventListener('click', () => {
-            const log = document.getElementById('combat-log');
-            if (log) {
-                log.classList.toggle('hidden');
-            }
-        });
+        // Parar narração do GM
+        this.gameMaster.stop();
     }
 
     /**
@@ -603,45 +572,20 @@ class Game {
      * Atualiza a barra de loading
      */
     atualizarLoading(percent, texto) {
-        if (this.elementos.loadingBar) {
-            this.elementos.loadingBar.style.width = `${percent}%`;
-        }
-        if (this.elementos.loadingText) {
-            this.elementos.loadingText.textContent = texto;
-        }
+        this.uiManager.atualizarLoading(percent, texto);
     }
 
     /**
      * Muda para uma tela específica
      */
     irParaTela(tela) {
-        // Se estava na tela de combate e está saindo, fazer limpeza
+        // Verificar se precisamos limpar estado (caso chamado diretamente)
         if (this.telaAtual === 'combat' && tela !== 'combat') {
-            // Parar música de combate
-            this.audioManager.pararMusica();
-
-            // Limpar estado do AR se estiver ativo
-            if (this.isARMode && this.arSceneManager) {
-                this.arSceneManager.dispose?.();
-                this.arSceneManager = null;
-                this.isARMode = false;
-            }
-
-            // Parar narração do GM
-            this.gameMaster.stop();
+            this.limparEstadoCombate();
         }
 
-        // Esconder todas as telas
-        document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-
-        // Mostrar tela desejada
-        const telaElement = document.getElementById(`${tela}-screen`);
-        if (telaElement) {
-            telaElement.classList.add('active');
-            this.telaAtual = tela;
-        }
+        this.uiManager.irParaTela(tela);
+        this.telaAtual = tela;
     }
 
     /**
@@ -977,17 +921,6 @@ class Game {
      * Configura callbacks da tela de configurações
      */
     setupSettingsCallbacks() {
-        // Botão de configurações na home
-        this.elementos.btnSettings?.addEventListener('click', () => {
-            this.irParaTela('settings');
-            this.carregarConfiguracoesNaTela();
-        });
-
-        // Botão voltar
-        document.getElementById('settings-back')?.addEventListener('click', () => {
-            this.irParaTela('home');
-        });
-
         // Sliders de volume
         const musicVolume = document.getElementById('music-volume');
         const sfxVolume = document.getElementById('sfx-volume');
@@ -1092,18 +1025,6 @@ class Game {
      * Configura callbacks da tela de missões
      */
     setupMissionCallbacks() {
-        // Botão combate leva para seleção de missões
-        // Este é o único listener para btnCombat (removido de setupEventListeners)
-        this.elementos.btnCombat?.addEventListener('click', () => {
-            this.irParaTela('mission');
-            this.renderizarListaMissoes();
-        });
-
-        // Botão voltar das missões
-        document.getElementById('mission-back')?.addEventListener('click', () => {
-            this.irParaTela('home');
-        });
-
         // Botão iniciar missão
         document.getElementById('start-mission-btn')?.addEventListener('click', () => {
             if (this.missaoSelecionada) {
@@ -1326,11 +1247,6 @@ class Game {
      * Configura callbacks da tela de mapa
      */
     setupMapCallbacks() {
-        // Botão voltar do mapa
-        document.getElementById('map-back')?.addEventListener('click', () => {
-            this.irParaTela('home');
-        });
-
         // Toggle da legenda
         const legendToggle = document.getElementById('map-legend-toggle');
         const legend = document.getElementById('map-legend');
@@ -1825,10 +1741,7 @@ class Game {
      * Configura callbacks da tela de perfil
      */
     setupProfileCallbacks() {
-        // Botão voltar
-        document.getElementById('profile-back')?.addEventListener('click', () => {
-            this.irParaTela('home');
-        });
+        // Callback removido - gerenciado pelo UIManager
     }
 
     /**
@@ -2190,17 +2103,7 @@ class Game {
      * Configura callbacks do inventário
      */
     setupInventoryCallbacks() {
-        // Botão de inventário no menu
-        document.getElementById('btn-inventory')?.addEventListener('click', () => {
-            this.irParaTela('inventory');
-            this.carregarInventario();
-        });
-
-        // Botão voltar
-        document.getElementById('inventory-back')?.addEventListener('click', () => {
-            this.irParaTela('home');
-            this.atualizarOuroHome();
-        });
+        // Botões de navegação removidos - gerenciados pelo UIManager
 
         // Tabs do inventário
         document.querySelectorAll('.inv-tab').forEach(tab => {
