@@ -94,8 +94,8 @@ export class ARSceneManager {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.xr.enabled = true;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.shadowMap.enabled = false;
+        // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Desabilitado para performance
 
         this.container.appendChild(this.renderer.domElement);
 
@@ -123,10 +123,10 @@ export class ARSceneManager {
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(2, 6, 2); // Leve angulação
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
-        directionalLight.shadow.bias = -0.0001;
+        directionalLight.castShadow = false;
+        // directionalLight.shadow.mapSize.width = 1024;
+        // directionalLight.shadow.mapSize.height = 1024;
+        // directionalLight.shadow.bias = -0.0001;
         this.scene.add(directionalLight);
     }
 
@@ -167,7 +167,7 @@ export class ARSceneManager {
 
         const catcher = new THREE.Mesh(geometry, material);
         catcher.rotation.x = -Math.PI / 2;
-        catcher.receiveShadow = true;
+        catcher.receiveShadow = false;
         return catcher;
     }
 
@@ -633,8 +633,8 @@ export class ARSceneManager {
                     const model = gltf.scene;
                     model.traverse((child) => {
                         if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
+                            child.castShadow = false;
+                            child.receiveShadow = false;
                         }
                     });
                     this.modelCache.set(modelPath, model.clone());
