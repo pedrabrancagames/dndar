@@ -205,21 +205,53 @@ export class UIManager {
     }
 
     /**
-     * Muda para uma tela específica
+     * Muda para uma tela específica com transição
      */
     irParaTela(tela) {
-        // Esconder todas as telas
-        document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-
-        // Mostrar tela desejada
-        const telaElement = document.getElementById(`${tela}-screen`);
-        if (telaElement) {
-            telaElement.classList.add('active');
-            this.telaAtual = tela;
-        } else {
+        const novaTela = document.getElementById(`${tela}-screen`);
+        if (!novaTela) {
             console.warn(`[UIManager] Tela não encontrada: ${tela}`);
+            return;
+        }
+
+        if (this.telaAtual === tela) return;
+
+        // Tela atual
+        const telaAtualElem = document.querySelector('.screen.active');
+
+        // Função para ativar a nova tela
+        const ativarNovaTela = () => {
+            // Esconder todas
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active', 'fade-in', 'fade-out');
+            });
+
+            // Mostrar nova
+            novaTela.classList.add('active');
+
+            // Forçar reflow para a animação funcionar
+            void novaTela.offsetWidth;
+
+            novaTela.classList.add('fade-in');
+            this.telaAtual = tela;
+
+            // Remover classe de animação após terminar
+            setTimeout(() => {
+                novaTela.classList.remove('fade-in');
+            }, 500); // Tempo da transição
+        };
+
+        // Se tem tela atual, faz fade out
+        if (telaAtualElem) {
+            telaAtualElem.classList.add('fade-out');
+
+            // Aguardar animação acabar
+            setTimeout(() => {
+                ativarNovaTela();
+            }, 300); // Um pouco menos que o total para agilidade
+        } else {
+            // Se não tem tela atual (primeiro load), vai direto
+            ativarNovaTela();
         }
     }
 

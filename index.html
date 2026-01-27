@@ -22,6 +22,7 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/transitions.css">
 </head>
 
 <body>
@@ -252,7 +253,7 @@
       <div class="setting-group">
         <label class="setting-label">
           <span>Narração por Voz</span>
-          <input type="checkbox" id="setting-voice" checked>
+          <input type="checkbox" id="setting-voice" checked aria-label="Ativar narração por voz">
           <span class="toggle-switch"></span>
         </label>
       </div>
@@ -260,7 +261,8 @@
       <div class="setting-group">
         <label class="setting-label">
           <span>Velocidade da Fala</span>
-          <input type="range" id="setting-speech-rate" min="0.5" max="1.5" step="0.1" value="0.9">
+          <input type="range" id="setting-speech-rate" min="0.5" max="1.5" step="0.1" value="0.9"
+            aria-label="Velocidade da fala">
           <span class="range-value" id="speech-rate-value">0.9x</span>
         </label>
       </div>
@@ -268,7 +270,7 @@
       <div class="setting-group">
         <label class="setting-label">
           <span>Volume</span>
-          <input type="range" id="setting-volume" min="0" max="1" step="0.1" value="1">
+          <input type="range" id="setting-volume" min="0" max="1" step="0.1" value="1" aria-label="Volume geral">
           <span class="range-value" id="volume-value">100%</span>
         </label>
       </div>
@@ -292,25 +294,25 @@
 
           <div class="setting-item">
             <label for="music-volume">Música</label>
-            <input type="range" id="music-volume" min="0" max="100" value="30">
+            <input type="range" id="music-volume" min="0" max="100" value="30" aria-label="Volume da Música">
             <span class="setting-value" id="music-volume-value">30%</span>
           </div>
 
           <div class="setting-item">
             <label for="sfx-volume">Efeitos Sonoros</label>
-            <input type="range" id="sfx-volume" min="0" max="100" value="70">
+            <input type="range" id="sfx-volume" min="0" max="100" value="70" aria-label="Efeitos Sonoros">
             <span class="setting-value" id="sfx-volume-value">70%</span>
           </div>
 
           <div class="setting-item">
             <label for="voice-volume">Voz do Game Master</label>
-            <input type="range" id="voice-volume" min="0" max="100" value="80">
+            <input type="range" id="voice-volume" min="0" max="100" value="80" aria-label="Volume da Voz">
             <span class="setting-value" id="voice-volume-value">80%</span>
           </div>
 
           <div class="setting-item toggle">
             <label for="mute-toggle">Mudo</label>
-            <input type="checkbox" id="mute-toggle">
+            <input type="checkbox" id="mute-toggle" aria-label="Ativar modo mudo">
           </div>
         </section>
 
@@ -320,12 +322,12 @@
 
           <div class="setting-item toggle">
             <label for="tips-toggle">Mostrar Dicas</label>
-            <input type="checkbox" id="tips-toggle" checked>
+            <input type="checkbox" id="tips-toggle" checked aria-label="Mostrar dicas de jogo">
           </div>
 
           <div class="setting-item toggle">
             <label for="auto-turn-toggle">Auto Passar Turno</label>
-            <input type="checkbox" id="auto-turn-toggle">
+            <input type="checkbox" id="auto-turn-toggle" aria-label="Ativar passagem automática de turno">
           </div>
         </section>
 
