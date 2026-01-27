@@ -77,7 +77,7 @@ export class CardSystem {
      * Calcula o dano de uma carta
      */
     calcularDano(carta, atacante, alvo) {
-        if (!carta.efeitos?.dano) return 0;
+        if (!carta.efeitos?.dano) return { dano: 0, critico: false };
 
         const { base, dados } = carta.efeitos.dano;
         let dano = base || 0;
@@ -156,7 +156,10 @@ export class CardSystem {
                 critico,
                 alvo: alvo.nome,
                 alvoId: alvo.instanceId || alvo.id, // ID para identificar unicamente quem sofreu o dano
-                derrotado: resultado.derrotado
+                derrotado: resultado.derrotado,
+                novaFase: resultado.novaFase,
+                fase: resultado.fase,
+                curaTransicao: resultado.curaTransicao
             });
 
             // Registrar dano causado

@@ -285,7 +285,7 @@ export class CombatManager {
             };
         }
 
-        // Emitir evento
+        // Emitir evento de carta usada
         this.emit('cartaUsada', {
             carta: carta.nome,
             cartaData: carta, // Dados completos da carta para efeitos visuais
@@ -295,6 +295,17 @@ export class CombatManager {
             heroiData: usuario.getHUDData(),
             alvoData: alvo.getDisplayData ? alvo.getDisplayData() : alvo.getHUDData()
         });
+
+        // Verificar mudança de fase de boss
+        const mudancaFase = resultados.find(r => r.novaFase);
+        if (mudancaFase) {
+            this.emit('bossPhaseChange', {
+                boss: alvo,
+                fase: mudancaFase.fase,
+                cura: mudancaFase.curaTransicao
+            });
+            console.log(`[CombatManager] Boss entrou na fase ${mudancaFase.fase}`);
+        }
 
         return { sucesso: true, resultados };
     }

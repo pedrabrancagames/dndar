@@ -562,6 +562,33 @@ class Game {
             }, 3500);
         });
 
+        this.combatManager.on('bossPhaseChange', async (data) => {
+            console.log('[Game] Boss phase change:', data);
+
+            // Log no HUD
+            this.hud.adicionarLog(`⚠️ ${data.boss.nome} entra na FASE ${data.fase}!`, 'warning');
+            this.hud.adicionarLog(`${data.boss.nome} recupera ${data.cura} PV`, 'heal');
+
+            // Feedback Sonoro
+            this.audioManager.tocarAcao('boss_phase'); // Som especial para fase (precisa existir ou usar fallback)
+
+            // Narrar
+            await this.gameMaster.narrarAcao({
+                tipo: 'fase_boss',
+                boss: data.boss.nome,
+                fase: data.fase
+            });
+
+            // Atualizar barra de vida e outros visuais
+            if (this.sceneManager) {
+                this.sceneManager.mostrarEfeitoEspecial(data.boss.instanceId, 'phase_change');
+                this.sceneManager.atualizarBarraVida(
+                    data.boss.instanceId,
+                    (data.boss.pv / data.boss.pvMax) * 100
+                );
+            }
+        });
+
         this.combatManager.on('modoSelecaoAlvo', () => {
             this.hud.mostrarModoSelecao();
         });

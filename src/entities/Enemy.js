@@ -87,13 +87,22 @@ export class Enemy {
         // Verificar derrota
         if (this.pv <= 0) {
             // Bosses podem ter fases
+            // Bosses podem ter fases
             if (this.isBoss && this.faseAtual < this.fases) {
                 this.faseAtual++;
-                this.pv = Math.floor(this.pvMax * 0.5); // Restaura 50% na próxima fase
+                const cura = Math.floor(this.pvMax * 0.5);
+                this.pv = cura; // Restaura para 50%
+
+                // Limpar debuffs negativos na transição
+                this.debuffs = [];
+                this.marcado = false;
+
                 return {
                     dano: danoFinal,
                     novaFase: true,
-                    fase: this.faseAtual
+                    fase: this.faseAtual,
+                    curaTransicao: cura,
+                    pvAtual: this.pv
                 };
             } else {
                 this.derrotado = true;
