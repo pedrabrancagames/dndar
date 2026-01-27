@@ -13,6 +13,7 @@ export class AudioManager {
         this.musicPlaying = false;
         // Guardar TODAS as instâncias de música para garantir que podemos parar todas
         this.warnedSounds = new Set();
+        this.allMusicInstances = [];
     }
 
     /**
