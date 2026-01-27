@@ -598,6 +598,29 @@ export class CombatManager {
     }
 
     /**
+     * Envia atualização para o HUD
+     */
+    atualizarHUD() {
+        // Encontrar herói ativo
+        const heroiAtivo = this.getHeroiAtivo();
+
+        // Dados para o HUD
+        const dadosHUD = {
+            round: this.turnManager.round,
+            turno: this.turnManager.turno, // 'herois' ou 'inimigos'
+            heroiIndex: this.turnManager.heroiIndex,
+            heroiAtivo: heroiAtivo ? heroiAtivo.getHUDData() : null,
+            herois: this.herois.map(h => h.getHUDData()),
+            inimigos: this.inimigos.filter(e => !e.derrotado).map(e => e.getHUDData()),
+            cartas: heroiAtivo ? heroiAtivo.mao.map(card => this.cardSystem.getCardDisplayData(card, heroiAtivo.pa)) : [],
+            // Adicionar inventário ao update do HUD
+            inventario: this.inventario || []
+        };
+
+        this.emit('updateHUD', dadosHUD);
+    }
+
+    /**
      * Obtém dados para renderização do HUD
      */
     getEstadoHUD() {

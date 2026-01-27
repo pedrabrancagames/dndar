@@ -615,7 +615,7 @@ export class HUD {
             this.esconderModoSelecao();
         }
 
-        // Atualizar Inventário Interno (se vier nos dados)
+        // Atualizar inventário se fornecido
         if (estadoHUD.inventario) {
             this.combatInventory = estadoHUD.inventario;
             if (this.inventoryOpen) {

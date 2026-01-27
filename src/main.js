@@ -183,8 +183,10 @@ class Game {
         this.audioManager.pararMusica();
 
         // Limpar estado do AR se estiver ativo
-        this.arSceneManager.dispose?.();
-        this.arSceneManager = null;
+        if (this.arSceneManager) {
+            this.arSceneManager.dispose?.();
+            this.arSceneManager = null;
+        }
         this.isARMode = false;
         this.hud.setARMode(false);
 
@@ -2364,7 +2366,7 @@ class Game {
 
         // Mapear itens com dados completos
         const itensComDados = itens.map(item => {
-            const dadosItem = this.itemsData?.items?.find(i => i.id === item.id);
+            const dadosItem = this.itemsData?.find(i => i.id === item.id);
             return { ...dadosItem, quantidade: item.quantidade };
         }).filter(item => item && item.id);
 
@@ -2422,7 +2424,7 @@ class Game {
      * Seleciona um item e mostra detalhes
      */
     selecionarItem(itemId, contexto = 'inventario') {
-        const item = this.itemsData?.items?.find(i => i.id === itemId);
+        const item = this.itemsData?.find(i => i.id === itemId);
         if (!item) return;
 
         this.itemSelecionado = item;
