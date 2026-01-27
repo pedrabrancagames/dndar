@@ -114,13 +114,13 @@
 - [x] UI para visualizar cartas desbloqueadas (na tela de Perfil)
 
 #### Fases de Boss
-- [ ] UI para mostrar transição de fase do boss
-- [ ] Animação/efeito especial na mudança de fase
-- [ ] Narração do Game Master na transição de fase
-- [ ] Restauração parcial de PV ao mudar de fase
+- [x] UI para mostrar transição de fase do boss
+- [x] Animação/efeito especial na mudança de fase
+- [x] Narração do Game Master na transição de fase
+- [x] Restauração parcial de PV ao mudar de fase
 
 #### Status de Ataques Inimigos
-- [ ] Aplicar status (envenenado, paralisado, etc.) quando inimigo ataca com ataques que têm status
+- [x] Aplicar status (envenenado, paralisado, etc.) quando inimigo ataca com ataques que têm status
 - [ ] Mostrar no log quando herói recebe status de ataque inimigo
 
 ### 🟡 Prioridade Média (Melhoria de experiência)
@@ -163,8 +163,8 @@
 - [ ] Seleção de dificuldade
 
 #### Navegação de Combate
-- [ ] Botão de pausar combate
-- [ ] Botão de voltar ao menu (com confirmação)
+- [x] Botão de pausar combate
+- [x] Botão de voltar ao menu (com confirmação)
 - [ ] Opção de reiniciar missão
 
 ### 🟢 Prioridade Baixa (Nice to have)

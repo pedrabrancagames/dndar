@@ -7,6 +7,14 @@ export class HUD {
         this.elements = {};
         this.cacheElements();
         this.callbacks = {};
+
+        // AR Arc Carousel State
+        this.isARMode = false;
+        this.carouselIndex = 0;
+        this.dragStartX = 0;
+        this.currentDragX = 0;
+        this.isDragging = false;
+        this.cardsCount = 0;
     }
 
     /**
@@ -97,6 +105,9 @@ export class HUD {
                 this.emit('heroClicado', { index: heroIndex });
             });
         });
+
+        // AR Carousel Event Listeners (Container)
+        this.setupCarouselListeners();
     }
 
     /**
@@ -212,21 +223,34 @@ export class HUD {
         if (!this.elements.cardsContainer) return;
 
         this.elements.cardsContainer.innerHTML = '';
+        this.cardsCount = cartas.length;
 
-        cartas.forEach(carta => {
-            const cardEl = this.criarElementoCarta(carta);
+        // Resetar carousel index se necessário
+        if (this.carouselIndex >= this.cardsCount) {
+            this.carouselIndex = Math.max(0, this.cardsCount - 1);
+        }
+
+        cartas.forEach((carta, index) => {
+            const cardEl = this.criarElementoCarta(carta, index);
             this.elements.cardsContainer.appendChild(cardEl);
         });
+
+        // Se estiver em AR, aplicar transformações do carrossel
+        if (this.isARMode) {
+            this.updateCarousel();
+        }
     }
 
     /**
      * Cria elemento DOM de uma carta
      */
-    criarElementoCarta(carta) {
+    criarElementoCarta(carta, index) {
         const card = document.createElement('div');
         card.className = 'card';
         card.dataset.cardId = carta.id;
         card.dataset.type = carta.tipo;
+        // Salvar índice para referência no carrossel
+        card.dataset.index = index;
 
         if (!carta.disponivel) {
             card.classList.add('disabled');
@@ -248,7 +272,14 @@ export class HUD {
     `;
 
         // Event listener para seleção
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
+            // Em modo AR, se clicar em carta lateral, apenas navega para ela
+            if (this.isARMode && index !== this.carouselIndex) {
+                e.stopPropagation(); // Evitar seleção acidental
+                this.snapToCard(index);
+                return;
+            }
+
             if (!carta.disponivel) return;
 
             // Remover seleção anterior
@@ -525,5 +556,158 @@ export class HUD {
             'sagrado': '✨'
         };
         return icones[tipo] || '•';
+    }
+    /**
+     * Define o modo AR (ativa/desativa carrossel)
+     */
+    setARMode(active) {
+        this.isARMode = active;
+        const container = document.getElementById('combat-screen'); // Ou onde a classe deve ser aplicada
+
+        if (active) {
+            container?.classList.add('ar-mode');
+            // Recalcular carrossel
+            setTimeout(() => this.updateCarousel(), 50);
+        } else {
+            container?.classList.remove('ar-mode');
+            // Limpar transformações inline
+            this.elements.cardsContainer.querySelectorAll('.card').forEach(card => {
+                card.style.transform = '';
+                card.style.opacity = '';
+                card.style.zIndex = '';
+                card.classList.remove('carousel-active');
+            });
+        }
+    }
+
+    /**
+     * Configura listeners para swipe no carrossel
+     */
+    setupCarouselListeners() {
+        const container = this.elements.cardsContainer;
+        if (!container) return;
+
+        // Touch Events
+        container.addEventListener('touchstart', (e) => this.inputStart(e.touches[0].clientX));
+        container.addEventListener('touchmove', (e) => this.inputMove(e.touches[0].clientX));
+        container.addEventListener('touchend', () => this.inputEnd());
+
+        // Mouse Events
+        container.addEventListener('mousedown', (e) => this.inputStart(e.clientX));
+        window.addEventListener('mousemove', (e) => {
+            if (this.isDragging) this.inputMove(e.clientX);
+        });
+        window.addEventListener('mouseup', () => {
+            if (this.isDragging) this.inputEnd();
+        });
+    }
+
+    inputStart(x) {
+        if (!this.isARMode) return;
+        this.isDragging = true;
+        this.dragStartX = x;
+        this.cardDragOffset = 0; // Offset visual temporário
+    }
+
+    inputMove(x) {
+        if (!this.isDragging || !this.isARMode) return;
+        const deltaX = x - this.dragStartX;
+
+        // Converter pixels para "fração de carta" (sensitivity)
+        // Aproximadamente 100px = 1 carta
+        this.cardDragOffset = -(deltaX / 100);
+
+        this.updateCarousel(this.cardDragOffset);
+    }
+
+    inputEnd() {
+        if (!this.isDragging || !this.isARMode) return;
+        this.isDragging = false;
+
+        // Aplicar o movimento ao índice
+        if (Math.abs(this.cardDragOffset) > 0.2) {
+            if (this.cardDragOffset > 0) {
+                this.carouselIndex = Math.min(this.cardsCount - 1, this.carouselIndex + Math.ceil(this.cardDragOffset));
+            } else {
+                this.carouselIndex = Math.max(0, this.carouselIndex + Math.floor(this.cardDragOffset));
+            }
+        } else {
+            // Reverter se movimento foi muito pequeno (snap back)
+        }
+
+        // Limite final
+        this.carouselIndex = Math.max(0, Math.min(this.carouselIndex, this.cardsCount - 1));
+
+        this.cardDragOffset = 0;
+        this.updateCarousel();
+    }
+
+    snapToCard(index) {
+        this.carouselIndex = index;
+        this.updateCarousel();
+    }
+
+    /**
+     * Atualiza as transformações 3D das cartas em arco
+     * @param {number} offset - Offset temporário durante arraste
+     */
+    updateCarousel(offset = 0) {
+        if (!this.isARMode) return;
+
+        const cards = this.elements.cardsContainer.querySelectorAll('.card');
+        const totalCards = cards.length;
+        const centerIndex = this.carouselIndex + offset;
+
+        // Configurações do Arco
+        const radius = 400; // Raio do arco em px
+        const angleStep = 15; // Graus de separação por carta
+
+        cards.forEach((card, index) => {
+            // Distância relativa ao centro (float durante drag)
+            const dist = index - centerIndex;
+
+            // Ângulo no arco
+            const angle = dist * angleStep;
+
+            // Coordenadas
+            // x: horizontal no arco
+            // z: profundidade (afasta conforme vai para borda)
+            // y: leve curva vertical (opcional)
+
+            // Simplificação matemática para arco frontal
+            const theta = (angle * Math.PI) / 180;
+            const x = radius * Math.sin(theta);
+            const z = radius * Math.cos(theta) - radius; // Z=0 no centro
+
+            // Escala e Opacidade baseada na distância
+            const absDist = Math.abs(dist);
+            let scale = 1.0;
+            let opacity = 1.0;
+            let rotateY = angle; // Rotaciona para olhar para o centro
+
+            if (absDist < 0.5) {
+                // Carta central (ou quase)
+                scale = 1.2 - (absDist * 0.2);
+                card.classList.add('carousel-active');
+                card.style.zIndex = 100;
+            } else {
+                scale = 1.0 - (Math.min(absDist, 3) * 0.1); // Diminui nas pontas
+                opacity = 1.0 - (Math.min(absDist, 3) * 0.2);
+                card.classList.remove('carousel-active');
+                card.style.zIndex = 100 - Math.round(absDist * 10);
+            }
+
+            // Aplicar CSS Transform
+            // translate3d(x, y, z) rotateY(deg) scale(s)
+
+            const transform = `
+                translate3d(${x}px, 0, ${z}px)
+                rotateY(${rotateY}deg)
+                scale(${scale})
+            `;
+
+            card.style.transform = transform;
+            card.style.opacity = Math.max(0, opacity);
+        });
     }
 }
