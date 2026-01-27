@@ -499,13 +499,26 @@ class Game {
 
             if (data.resultado === 'vitoria') {
                 this.hud.adicionarLog('=== VITÓRIA ===', 'buff');
-                this.hud.adicionarLog(`XP ganho: ${data.recompensas?.xp || 0}`, 'buff');
+
+                // Obter recompensas da missão (ouro, itens especiais)
+                const recompensasMissao = this.campaignManager.getRecompensas();
+
+                // Combinar com recompensas do combate (XP dos inimigos)
+                const recompensasFinais = {
+                    ...recompensasMissao,
+                    xp: (recompensasMissao.xp || 0) + (data.recompensas?.xp || 0)
+                };
+
+                this.hud.adicionarLog(`XP ganho: ${recompensasFinais.xp}`, 'buff');
+                if (recompensasFinais.ouro > 0) {
+                    this.hud.adicionarLog(`Ouro obtido: ${recompensasFinais.ouro}`, 'buff');
+                }
 
                 // Som de vitória
                 this.audioManager.tocarAcao('victory');
 
                 // Salvar progresso
-                this.salvarProgressoVitoria(data.recompensas || { xp: 0, ouro: 0 });
+                this.salvarProgressoVitoria(recompensasFinais);
 
                 // Limpar todos os inimigos restantes imediatamente
                 this.sceneManager?.limparInimigos();
