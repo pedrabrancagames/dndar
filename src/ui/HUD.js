@@ -15,6 +15,10 @@ export class HUD {
         this.currentDragX = 0;
         this.isDragging = false;
         this.cardsCount = 0;
+
+        // Inventory State
+        this.inventoryOpen = false;
+        this.combatInventory = [];
     }
 
     /**
@@ -108,6 +112,135 @@ export class HUD {
 
         // AR Carousel Event Listeners (Container)
         this.setupCarouselListeners();
+
+        // Inicializar UI de Inventário de Combate
+        this.criarUIInventario();
+    }
+
+    /**
+     * Cria os elementos de UI do inventário de combate dinamicamente
+     */
+    criarUIInventario() {
+        // Encontrar container de controles de combate (onde fica o botão de turno)
+        // Se não houver um container específico, vamos assumir que buttons e cards ficam numa área inferior
+        const cardsContainer = this.elements.cardsContainer;
+        if (!cardsContainer) return;
+
+        const controlsArea = cardsContainer.parentElement; // Assumindo uma div wrapper
+
+        // 1. Criar Botão da Mochila
+        const bagBtn = document.createElement('button');
+        bagBtn.id = 'combat-bag-btn';
+        bagBtn.className = 'combat-btn bag-btn';
+        bagBtn.innerHTML = '🎒 Itens';
+        bagBtn.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(to bottom, #8e44ad, #9b59b6);
+            border: 2px solid #6c3483;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 50;
+        `;
+
+        // Inserir no DOM
+        if (controlsArea) {
+            controlsArea.appendChild(bagBtn);
+        } else {
+            document.body.appendChild(bagBtn); // Fallback
+        }
+
+        // 2. Criar Painel de Itens (inicialmente escondido)
+        const itemPanel = document.createElement('div');
+        itemPanel.id = 'combat-item-panel';
+        itemPanel.className = 'combat-item-panel hidden';
+        itemPanel.style.cssText = `
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 2px solid #8e44ad;
+            border-radius: 10px;
+            padding: 15px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            transform-origin: bottom left;
+        `;
+        // Estado inicial de hidden via style também para garantir
+        itemPanel.style.opacity = '0';
+        itemPanel.style.pointerEvents = 'none';
+        itemPanel.style.transform = 'scale(0.9)';
+
+        // Inserir painel
+        controlsArea ? controlsArea.appendChild(itemPanel) : document.body.appendChild(itemPanel);
+
+        // Cachear novos elementos
+        this.elements.bagBtn = bagBtn;
+        this.elements.itemPanel = itemPanel;
+
+        // Listeners
+        bagBtn.addEventListener('click', () => this.toggleInventario());
+
+        // Fechar ao clicar fora (opcional, mas bom pra UX)
+        document.addEventListener('click', (e) => {
+            if (this.inventoryOpen &&
+                !itemPanel.contains(e.target) &&
+                !bagBtn.contains(e.target)) {
+                this.toggleInventario(false);
+            }
+        });
+    }
+
+    /**
+     * Abre/Fecha inventário de combate
+     */
+    toggleInventario(forcarEstado = null) {
+        const novoEstado = forcarEstado !== null ? forcarEstado : !this.inventoryOpen;
+        this.inventoryOpen = novoEstado;
+
+        const panel = this.elements.itemPanel;
+        const btn = this.elements.bagBtn;
+        if (!panel) return;
+
+        if (this.inventoryOpen) {
+            panel.classList.remove('hidden');
+            // Animação de entrada
+            requestAnimationFrame(() => {
+                panel.style.opacity = '1';
+                panel.style.pointerEvents = 'auto';
+                panel.style.transform = 'scale(1)';
+            });
+            btn.classList.add('active');
+
+            // Emitir evento para pedir dados atualizados (se necessário)
+            // Mas idealmente o HUD já deveria ter recebido via update()
+            // Vamos renderizar o que temos
+            this.renderizarItens();
+
+        } else {
+            // Animação de saída
+            panel.style.opacity = '0';
+            panel.style.pointerEvents = 'none';
+            panel.style.transform = 'scale(0.9)';
+            btn.classList.remove('active');
+
+            setTimeout(() => {
+                if (!this.inventoryOpen) panel.classList.add('hidden');
+            }, 300);
+        }
     }
 
     /**
@@ -481,6 +614,85 @@ export class HUD {
         } else {
             this.esconderModoSelecao();
         }
+
+        // Atualizar Inventário Interno (se vier nos dados)
+        if (estadoHUD.inventario) {
+            this.combatInventory = estadoHUD.inventario;
+            if (this.inventoryOpen) {
+                this.renderizarItens();
+            }
+        }
+    }
+
+    /**
+     * Renderiza os itens no painel de inventário
+     */
+    renderizarItens() {
+        const panel = this.elements.itemPanel;
+        if (!panel) return;
+
+        panel.innerHTML = '';
+
+        if (!this.combatInventory || this.combatInventory.length === 0) {
+            panel.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 20px;">Mochila vazia</div>';
+            return;
+        }
+
+        this.combatInventory.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'combat-item';
+            itemEl.dataset.itemId = item.id;
+            itemEl.title = `${item.nome}\n${item.descricao}`;
+
+            // Estilo do item (card mini)
+            itemEl.style.cssText = `
+                position: relative;
+                background: #2c3e50;
+                border: 1px solid #7f8c8d;
+                border-radius: 6px;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
+                transition: transform 0.2s;
+            `;
+
+            // Hover effect via JS já que é inline (ou adicionar classe CSS global seria melhor, mas seguindo inline)
+            itemEl.onmouseenter = () => itemEl.style.transform = 'scale(1.05)';
+            itemEl.onmouseleave = () => itemEl.style.transform = 'scale(1)';
+
+            itemEl.innerHTML = `
+                <div class="item-icon" style="font-size: 24px; margin-bottom: 5px;">${item.icon}</div>
+                <div class="item-qtd" style="
+                    position: absolute;
+                    top: -5px;
+                    right: -5px;
+                    background: #e74c3c;
+                    color: white;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    font-size: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                ">${item.quantidade}</div>
+                <div class="item-name" style="font-size: 10px; text-align: center; color: white;">${item.nome}</div>
+            `;
+
+            // Click listener
+            itemEl.addEventListener('click', () => {
+                this.emit('cartaSelecionada', { cardId: item.id, isItem: true, itemData: item });
+                // Fechar inventário após selecionar? Talvez não, melhor deixar usuário fechar ou fechar ao usar
+                if (window.innerWidth < 768) { // Apenas mobile fecha auto
+                    this.toggleInventario(false);
+                }
+            });
+
+            panel.appendChild(itemEl);
+        });
     }
 
     /**

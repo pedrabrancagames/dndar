@@ -75,6 +75,16 @@ class Game {
         this.saveData = this.saveManager.carregar();
         this.settings = this.saveManager.carregarConfiguracoes();
 
+        // Carregar dados de itens
+        try {
+            const itemsResponse = await fetch('/data/items.json');
+            const itemsJson = await itemsResponse.json();
+            this.itemsData = itemsJson.items;
+            console.log(`[Game] ${this.itemsData.length} itens carregados`);
+        } catch (error) {
+            console.error('[Game] Erro ao carregar itens:', error);
+        }
+
         this.uiManager.atualizarLoading(50, 'Carregando Game Master...');
 
         // Carregar configurações salvas
@@ -597,6 +607,58 @@ class Game {
             this.sceneManager?.limparDestaques();
             this.hud.limparDestaqueHerois();
         });
+
+        // Evento de consumo de item
+        this.combatManager.on('itemUsado', ({ itemId, usuario }) => {
+            console.log(`[Game] Item ${itemId} usado por ${usuario}`);
+
+            // Encontrar e remover item do inventário
+            const inventario = this.saveData.inventario.itens;
+            const itemIndex = inventario.findIndex(i => i.id === itemId);
+
+            if (itemIndex >= 0) {
+                inventario[itemIndex].quantidade--;
+
+                // Se acabou, remover do array
+                if (inventario[itemIndex].quantidade <= 0) {
+                    inventario.splice(itemIndex, 1);
+                }
+
+                // Atualizar combat manager com novo inventário
+                this.atualizarInventarioCombate();
+
+                // Salvar jogo
+                this.saveManager.salvar(this.saveData);
+            }
+        });
+    }
+
+    /**
+     * Prepara e envia o inventário atualizado para o CombatManager
+     */
+    atualizarInventarioCombate() {
+        if (!this.saveData || !this.itemsData) return;
+
+        // Mapear itens do save com seus metadados completos
+        const inventarioCombate = this.saveData.inventario.itens
+            .map(itemSave => {
+                const itemData = this.itemsData.find(i => i.id === itemSave.id);
+                if (!itemData) return null;
+
+                // Apenas consumíveis podem ser usados em combate
+                if (itemData.tipo !== 'consumivel') return null;
+
+                return {
+                    ...itemData,
+                    quantidade: itemSave.quantidade
+                };
+            })
+            .filter(item => item !== null);
+
+        this.combatManager.setInventario(inventarioCombate);
+
+        // Também atualizar HUD se estiver aberto
+        // TODO: Adicionar método no HUD para atualizar itens
     }
 
     /**
@@ -1251,9 +1313,9 @@ class Game {
             texto: missao.briefing
         });
 
-        // Iniciar combate com os inimigos da missão (forçar reset se houver combate anterior)
         const configInimigos = this.campaignManager.getInimigosParaCombate();
         this.combatManager.iniciarCombate(configInimigos, true);
+        this.atualizarInventarioCombate(); // Enviar inventário para combate
 
         // Mostrar instruções AR
         this.hud.adicionarLog('Aponte para uma superfície plana', 'buff');
@@ -1287,6 +1349,7 @@ class Game {
 
         const configInimigos = this.campaignManager.getInimigosParaCombate();
         this.combatManager.iniciarCombate(configInimigos);
+        this.atualizarInventarioCombate(); // Enviar inventário para combate
     }
 
     /**

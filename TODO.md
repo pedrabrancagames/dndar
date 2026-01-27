@@ -150,7 +150,7 @@
 - [x] Loja para comprar itens com ouro
 - [x] Vender itens
 - [x] 24 itens implementados (armas, armaduras, acessórios, consumíveis)
-- [ ] Usar itens durante combate (poções, etc.)
+- [x] Usar itens durante combate (poções, etc.)
 
 #### Comportamentos de IA Avançados
 - [ ] Implementar IA "calculista" (escolhe melhor ataque para situação)

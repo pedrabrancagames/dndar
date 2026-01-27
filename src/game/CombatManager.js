@@ -46,6 +46,138 @@ export class CombatManager {
     }
 
     /**
+     * Define o inventário disponível para combate
+     */
+    setInventario(itens) {
+        this.inventario = itens || [];
+        console.log(`[CombatManager] Inventário definido: ${this.inventario.length} itens`);
+    }
+
+    /**
+     * Converte um item do inventário em uma carta temporária
+     */
+    itemParaCarta(item) {
+        // Encontrar definição completa do item (assumindo que 'item' aqui é {id, quantidade} e precisamos dos dados completos)
+        // Como o item vindo do save tem apenas ID e quantidade, precisamos buscar os metadados
+        // Idealmente, o main.js já deveria passar os dados completos, mas vamos garantir aqui
+
+        const efeitos = {};
+
+        // Mapeamento de efeitos do item para estrutura de carta
+        if (item.efeito) {
+            const tipo = item.efeito.tipo;
+            const valor = item.efeito.valor;
+
+            if (tipo === 'cura') {
+                efeitos.cura = { base: valor };
+            } else if (tipo === 'buff') {
+                efeitos.buff = {
+                    tipo: item.efeito.stat,
+                    valor: valor,
+                    duracao: item.efeito.duracao
+                };
+            } else if (tipo === 'dano_area' || tipo === 'dano') {
+                efeitos.dano = { base: valor };
+            } else if (tipo === 'reviver') {
+                efeitos.reviver = { pv_percent: valor };
+            } else if (tipo === 'curar_status') {
+                efeitos.remover_debuffs = true;
+            }
+        }
+
+        // Estrutura de carta temporária
+        return {
+            id: `item_${item.id}_${Date.now()}`, // ID único temporário
+            itemId: item.id, // Referência ao ID original
+            nome: item.nome,
+            tipo: 'consumivel',
+            custoPA: 1, // Custo padrão de uso de item
+            alvo: this.determinarAlvoItem(item),
+            efeitos: efeitos,
+            icon: item.icon,
+            descricao: item.descricao,
+            descartavel: true,
+            isItem: true // Flag para identificar que é item
+        };
+    }
+
+    /**
+     * Determina o tipo de alvo baseado no item
+     */
+    determinarAlvoItem(item) {
+        if (!item.efeito) return 'self';
+
+        const tipo = item.efeito.tipo;
+        if (tipo === 'cura' || tipo === 'buff' || tipo === 'curar_status' || tipo === 'reviver') {
+            return 'aliado'; // Pode usar em si mesmo ou aliados
+        }
+        if (tipo === 'dano' || tipo === 'debuff') {
+            return 'inimigo';
+        }
+        if (tipo === 'dano_area') {
+            return 'todos_inimigos';
+        }
+        return 'self';
+    }
+
+    /**
+     * Seleciona um item para usar
+     */
+    selecionarItem(itemData) { // itemData deve conter os dados completos do item (do items.json + quantidade)
+        const heroi = this.getHeroiAtivo();
+        if (!heroi) return { sucesso: false, erro: 'Nenhum herói ativo' };
+
+        if (itemData.quantidade <= 0) {
+            return { sucesso: false, erro: 'Item esgotado' };
+        }
+
+        // Criar carta temporária
+        const cartaItem = this.itemParaCarta(itemData);
+
+        if (!heroi.podeUsarCarta(cartaItem)) {
+            return { sucesso: false, erro: 'PA insuficiente' };
+        }
+
+        this.cartaSelecionada = cartaItem;
+
+        // Verificar se precisa de alvo
+        if (cartaItem.alvo === 'self') {
+            return this.usarCarta(heroi);
+        }
+
+        if (cartaItem.alvo === 'todos_inimigos' || cartaItem.alvo === 'todos_herois') {
+            return this.usarCartaAoE(heroi, cartaItem);
+        }
+
+        // Precisa selecionar alvo
+        this.modoSelecaoAlvo = true;
+
+        // Obter alvos possíveis adaptados para o tipo 'aliado' (que inclui o próprio herói)
+        let alvos = [];
+        if (cartaItem.alvo === 'aliado') {
+            // Todos os heróis são alvos válidos para cura/buff
+            alvos = this.herois;
+            // Se for reviver, apenas incapacitados
+            if (cartaItem.efeitos?.tipo === 'reviver') {
+                alvos = this.herois.filter(h => h.incapacitado);
+            } else {
+                // Cura normal não pode em incapacitados (geralmente)
+                alvos = this.herois.filter(h => !h.incapacitado);
+            }
+        } else {
+            alvos = this.cardSystem.getAlvosPossiveis(cartaItem, heroi, this.herois, this.inimigos);
+        }
+
+        this.emit('modoSelecaoAlvo', {
+            carta: this.cardSystem.getCardDisplayData(cartaItem, heroi.pa),
+            alvos: alvos.map(a => a.instanceId || a.id),
+            isItem: true
+        });
+
+        return { sucesso: true, modoSelecao: true, alvos };
+    }
+
+    /**
      * Configura callbacks do TurnManager
      */
     setupTurnManagerCallbacks() {
@@ -296,6 +428,14 @@ export class CombatManager {
             alvoData: alvo.getDisplayData ? alvo.getDisplayData() : alvo.getHUDData()
         });
 
+        // Se for item, emitir evento de consumo
+        if (carta.isItem) {
+            this.emit('itemUsado', {
+                itemId: carta.itemId,
+                usuario: usuario.nome
+            });
+        }
+
         // Verificar mudança de fase de boss
         const mudancaFase = resultados.find(r => r.novaFase);
         if (mudancaFase) {
@@ -350,6 +490,14 @@ export class CombatManager {
             usuario: usuario.nome,
             resultados: todosResultados
         });
+
+        // Se for item, emitir evento de consumo
+        if (carta.isItem) {
+            this.emit('itemUsado', {
+                itemId: carta.itemId,
+                usuario: usuario.nome
+            });
+        }
 
         return { sucesso: true, resultados: todosResultados };
     }
