@@ -791,6 +791,23 @@ export class ARSceneManager {
     }
 
     /**
+     * Mostra efeito especial em uma entidade
+     */
+    mostrarEfeitoEspecial(instanceId, tipo) {
+        const mesh = this.enemyMeshes.get(instanceId);
+        if (!mesh) return;
+
+        // Efeito de partículas
+        if (this.particleSystem) {
+            // Mapear tipos de efeitos
+            let efeito = tipo;
+            if (tipo === 'phase_change') efeito = 'levelup'; // Reutilizar efeito de levelup por enquanto
+
+            this.particleSystem.dispararEfeito(efeito, mesh.position);
+        }
+    }
+
+    /**
      * Mostra efeito de cura em um herói (para uso futuro)
      */
     mostrarCura(position) {

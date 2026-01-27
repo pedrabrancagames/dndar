@@ -2368,9 +2368,7 @@ class Game {
         const itensComDados = itens.map(item => {
             const dadosItem = this.itemsData?.find(i => i.id === item.id);
             return { ...dadosItem, quantidade: item.quantidade };
-        }).filter(item => item && item.id);
-
-        // Aplicar filtro
+        }).filter(item => item && item.id && item.tipo !== 'consumivel');
         const itensFiltrados = filtro === 'todos'
             ? itensComDados
             : itensComDados.filter(item => item.tipo === filtro);
