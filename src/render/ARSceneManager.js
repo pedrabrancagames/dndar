@@ -220,7 +220,11 @@ export class ARSceneManager {
         this.xrSession = null;
         this.hitTestSource = null;
         this.hitTestSourceRequested = false;
-        this.renderer.setAnimationLoop(null);
+
+        if (this.renderer) {
+            this.renderer.setAnimationLoop(null);
+        }
+
         this.emit('arEnded');
     }
 

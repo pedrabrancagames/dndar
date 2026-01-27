@@ -12,7 +12,7 @@ export class AudioManager {
         this.isLoaded = false;
         this.musicPlaying = false;
         // Guardar TODAS as instâncias de música para garantir que podemos parar todas
-        this.allMusicInstances = [];
+        this.warnedSounds = new Set();
     }
 
     /**
@@ -47,6 +47,7 @@ export class AudioManager {
             { id: 'victory', path: '/sounds/victory.mp3' },
             { id: 'defeat', path: '/sounds/defeat.mp3' },
             { id: 'enemy_turn', path: '/sounds/enemy_turn.mp3' },
+            { id: 'ui_hover', path: '/sounds/card_select.mp3' }, // Alias para hover
 
             // AR
             // { id: 'ar_placement', path: '/sounds/ar_placement.mp3' } // Agora é música
@@ -90,7 +91,10 @@ export class AudioManager {
 
         const audio = this.sounds.get(soundId);
         if (!audio) {
-            console.warn(`[AudioManager] Som não encontrado: ${soundId}`);
+            if (!this.warnedSounds.has(soundId)) {
+                console.warn(`[AudioManager] Som não encontrado: ${soundId}`);
+                this.warnedSounds.add(soundId);
+            }
             return;
         }
 
