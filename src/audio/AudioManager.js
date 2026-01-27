@@ -235,6 +235,14 @@ export class AudioManager {
     }
 
     /**
+     * Inicia a música do mapa
+     */
+    iniciarMusicaMapa() {
+        // Usando a mesma música de placement (ambiente) para o mapa
+        this.tocarMusica('/sounds/ar_placement.mp3');
+    }
+
+    /**
      * Para a música completamente - TODAS as instâncias
      */
     pararMusica() {

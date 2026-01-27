@@ -140,6 +140,11 @@ class Game {
             if (destino === 'inventory') this.carregarInventario();
             if (destino === 'home' && this.atualizarOuroHome) this.atualizarOuroHome();
 
+            // Se estava no mapa e está saindo, parar música
+            if (this.telaAtual === 'map' && destino !== 'map') {
+                this.audioManager.pararMusica();
+            }
+
             this.telaAtual = destino;
         });
 
@@ -1273,6 +1278,9 @@ class Game {
         const mapLocations = document.getElementById('map-locations');
         const mapPaths = document.getElementById('map-paths');
         if (!mapLocations) return;
+
+        // Tocar música ambiente do mapa
+        this.audioManager.iniciarMusicaMapa();
 
         // Obter missões e progresso
         const missoes = this.campaignManager.getMissoesDisponiveis(this.saveData);
